@@ -1,0 +1,10 @@
+# Add files here to ignore them from prettier formatting
+
+/dist
+/coverage
+
+# modules
+node_modules
+
+# lock files
+pnpm-lock.yaml

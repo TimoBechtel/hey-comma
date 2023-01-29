@@ -1,0 +1,15 @@
+# vscode files
+.vscode
+
+# Dependency directories
+node_modules/
+
+# test
+coverage
+
+# build files
+dist
+.parcel-cache
+
+# os related
+.DS_Store
