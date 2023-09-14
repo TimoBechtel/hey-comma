@@ -1,4 +1,4 @@
-import { Configuration, OpenAIApi } from 'openai';
+import OpenAI from 'openai';
 import { config } from './config.js';
 
 export async function askAi(
@@ -28,44 +28,49 @@ export async function askAi(
 	const model = config.get('openai_model', 'text-davinci-003');
 
 	const client = createOpenAIClient({ apiKey });
-	const { status, data } = await client.createCompletion({
-		model,
-		prompt: JSON.stringify(prompt),
-		temperature: 0.7,
-		max_tokens: maxTokens,
-	});
+	try {
+		const { choices } = await client.completions.create({
+			model,
+			prompt: JSON.stringify(prompt),
+			temperature: 0.7,
+			max_tokens: maxTokens,
+		});
+		// trim leading and trailing whitespace or newlines
+		const answer = choices[0]?.text;
 
-	if (status !== 200) {
+		if (!answer) {
+			return {
+				error: 'Error: The ai returned an empty answer.',
+				success: false,
+				answer: null,
+			};
+		}
+
 		return {
-			error: 'OpenAI API error: ' + data,
+			answer: answer,
+			success: true,
+			error: null,
+		};
+	} catch (error) {
+		if (error instanceof OpenAI.APIError) {
+			return {
+				error: 'OpenAI API error: ' + error.message,
+				success: false,
+				answer: null,
+			};
+		}
+		return {
+			error: 'An unknown error occurred.',
 			success: false,
 			answer: null,
 		};
 	}
-
-	// trim leading and trailing whitespace or newlines
-	const answer = data.choices[0]?.text;
-
-	if (!answer) {
-		return {
-			error: 'Error: The ai returned an empty answer.',
-			success: false,
-			answer: null,
-		};
-	}
-
-	return {
-		answer: answer,
-		success: true,
-		error: null,
-	};
 }
 
 function createOpenAIClient({ apiKey }: { apiKey: string }) {
-	const configuration = new Configuration({
+	return new OpenAI({
 		apiKey,
 	});
-	return new OpenAIApi(configuration);
 }
 
 function getAPIKey() {
