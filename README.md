@@ -159,6 +159,28 @@ cat script.sh | hey, explain
 
 ## Contributing
 
+### Development
+
+This project uses [bun](https://bun.sh/) as package manager & bundler.
+
+If you don't have bun installed, run:
+
+```sh
+curl -fsSL https://bun.sh/install | bash
+```
+
+#### Install dependencies
+
+```sh
+bun install
+```
+
+#### Build
+
+```sh
+bun run build
+```
+
 ### Commit messages
 
 This project uses semantic-release for automated release versions. So commits in this project follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0-beta.2/) guidelines. I recommend using [commitizen](https://github.com/commitizen/cz-cli) for automated commit messages.
