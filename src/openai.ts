@@ -3,7 +3,10 @@ import { config } from './config.js';
 
 export async function askAi(
 	prompt: string,
-	{ maxTokens = 256 }: { maxTokens?: number } = {}
+	{
+		maxTokens = 256,
+		overrideModel,
+	}: { maxTokens?: number; overrideModel?: string } = {}
 ): Promise<
 	| {
 			answer: string;
@@ -25,7 +28,7 @@ export async function askAi(
 		};
 	}
 
-	const model = config.get('openai_model', 'gpt-3.5-turbo');
+	const model = overrideModel ?? config.get('openai_model', 'gpt-3.5-turbo');
 	const shouldUseLegacyAPI = useLegacyAPI(model);
 
 	const client = createOpenAIClient({ apiKey });

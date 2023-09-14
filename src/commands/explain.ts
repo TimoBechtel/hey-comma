@@ -14,6 +14,7 @@ const explainCmd = program
 		'pipe data to "hey," to ask questions about it. e.g. `cat script.sh | hey, explain`.'
 	)
 	.argument('[question...]', 'optional question')
+	.option('--gpt4', 'use the GPT-4 model')
 	.hook('preAction', (command) => {
 		if (!isConfigured()) {
 			command.error(
@@ -21,7 +22,7 @@ const explainCmd = program
 			);
 		}
 	})
-	.action(async (strings?: string[]) => {
+	.action(async (strings: string[], options?: { gpt4?: boolean }) => {
 		let question: string;
 		if (!strings || strings.length === 0) {
 			question = 'What is this?';
@@ -43,7 +44,9 @@ const explainCmd = program
 
 		const prompt = prompts.explanation(input, question);
 
-		const { success, error, answer } = await askAi(prompt);
+		const { success, error, answer } = await askAi(prompt, {
+			overrideModel: options?.gpt4 ? 'gpt-4' : undefined,
+		});
 
 		if (!success) {
 			spinner.stop();

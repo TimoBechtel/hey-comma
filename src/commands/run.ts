@@ -15,6 +15,7 @@ const runCmd = program
 	.alias('run:')
 	.description('create a shell command from an instruction (default)')
 	.argument('[instruction...]', 'instruction')
+	.option('--gpt4', 'use the GPT-4 model')
 	.hook('preAction', (command) => {
 		if (!isConfigured()) {
 			command.error(
@@ -22,7 +23,7 @@ const runCmd = program
 			);
 		}
 	})
-	.action(async (strings?: string[]) => {
+	.action(async (strings: string[], options?: { gpt4?: boolean }) => {
 		if (context.stdin) {
 			runCmd.error(
 				'hey, does not support piping data to "hey, run". Please use "hey, run" without piping data. Or use "hey, explain"'
@@ -58,7 +59,13 @@ const runCmd = program
 			if (!command) {
 				const prompt = prompts.terminalCommand(instruction);
 
-				const { success, error, answer: _command } = await askAi(prompt);
+				const {
+					success,
+					error,
+					answer: _command,
+				} = await askAi(prompt, {
+					overrideModel: options?.gpt4 ? 'gpt-4' : undefined,
+				});
 
 				if (!success) {
 					runCmd.error(error);

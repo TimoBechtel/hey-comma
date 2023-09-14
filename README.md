@@ -139,6 +139,12 @@ By default, `hey,` uses GPT-3 (gpt-). If you want to use another mode, like GPT-
 hey, config set openai_model gpt-4
 ```
 
+You can also use gpt-4 for a single command:
+
+```sh
+hey, "what is the most recent file in ~/Documents?" --gpt4
+```
+
 > Note that gpt-4 is significantly more expensive and quite a bit slower than gpt-3.
 
 ## Data sent to OpenAI
