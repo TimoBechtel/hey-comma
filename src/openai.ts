@@ -25,18 +25,35 @@ export async function askAi(
 		};
 	}
 
-	const model = config.get('openai_model', 'text-davinci-003');
+	const model = config.get('openai_model', 'gpt-3.5-turbo');
+	const shouldUseLegacyAPI = useLegacyAPI(model);
 
 	const client = createOpenAIClient({ apiKey });
 	try {
-		const { choices } = await client.completions.create({
-			model,
-			prompt: JSON.stringify(prompt),
-			temperature: 0.7,
-			max_tokens: maxTokens,
-		});
-		// trim leading and trailing whitespace or newlines
-		const answer = choices[0]?.text;
+		let answer: string | null = null;
+
+		if (shouldUseLegacyAPI) {
+			const result = await client.completions.create({
+				model,
+				prompt: JSON.stringify(prompt),
+				temperature: 0.7,
+				max_tokens: maxTokens,
+			});
+			answer = result.choices[0]?.text;
+		} else {
+			const result = await client.chat.completions.create({
+				model,
+				messages: [
+					{
+						role: 'user',
+						content: JSON.stringify(prompt),
+					},
+				],
+				temperature: 0.7,
+				max_tokens: maxTokens,
+			});
+			answer = result.choices[0]?.message.content;
+		}
 
 		if (!answer) {
 			return {
@@ -80,4 +97,8 @@ function getAPIKey() {
 		return process.env[envKey];
 	}
 	return key;
+}
+
+function useLegacyAPI(model: string) {
+	return !model.startsWith('gpt');
 }

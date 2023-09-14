@@ -41,7 +41,7 @@ export const config = new Conf<Config>({
 		},
 	},
 	defaults: {
-		openai_model: 'text-davinci-003',
+		openai_model: 'gpt-3.5-turbo',
 		cache: {
 			max_entries: 50,
 		},

@@ -131,7 +131,17 @@ To pass special characters to the `hey,`, you can pass them as a quoted string:
 hey, "what is the most recent file in ~/Documents?"
 ```
 
-### Data sent to OpenAI
+## Use a different OpenAI model (e.g. GPT-4)
+
+By default, `hey,` uses GPT-3 (gpt-). If you want to use another mode, like GPT-4, you can set the `openai_model` option:
+
+```sh
+hey, config set openai_model gpt-4
+```
+
+> Note that gpt-4 is significantly more expensive and quite a bit slower than gpt-3.
+
+## Data sent to OpenAI
 
 `hey,` will send the following data to OpenAI:
 
@@ -139,7 +149,7 @@ hey, "what is the most recent file in ~/Documents?"
 - The data you pipe to `hey, explain`
 - Your current shell (e.g. `bash` or `zsh`)
 
-### More examples
+## More examples
 
 <p align="center">
 <img width="650px" alt="running command example" src="./assets/ip-addr.gif">
