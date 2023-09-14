@@ -11,7 +11,7 @@
 		"hey": "./dist/index.js"
 	},
 	"engines": {
-		"node": ">=14.16"
+		"node": ">=16"
 	},
 	"keywords": [
 		"gpt",

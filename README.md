@@ -52,7 +52,7 @@ hey, create a tarball with all files in the current directory, except javascript
 
 ## Install
 
-`hey,` requires Node.js v14.16 or higher.
+`hey,` requires Node.js v16 or higher.
 
 ```sh
 npm i -g hey-comma
