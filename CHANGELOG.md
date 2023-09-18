@@ -1,3 +1,12 @@
+# [1.2.0](https://github.com/TimoBechtel/hey-comma/compare/v1.1.0...v1.2.0) (2023-09-18)
+
+
+### Features
+
+* allow customizing the prompt & add more configuration options ([287abd3](https://github.com/TimoBechtel/hey-comma/commit/287abd35ec2249c59fca08d25d1c3c70e94dddca))
+* do not reset config when running the setup command again ([f60ee6f](https://github.com/TimoBechtel/hey-comma/commit/f60ee6f568ab59b34f8514adb9b3ffdde9a496c6))
+* significantly improve response for run command ([882666a](https://github.com/TimoBechtel/hey-comma/commit/882666ab5eec7a179a8638b1fb4c79e8d246ef1f))
+
 # [1.1.0](https://github.com/TimoBechtel/hey-comma/compare/v1.0.0...v1.1.0) (2023-09-14)
 
 
