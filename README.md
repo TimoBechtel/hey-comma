@@ -58,7 +58,8 @@ hey, create a tarball with all files in the current directory, except javascript
 npm i -g hey-comma
 ```
 
-> Note: pnpm does not like the comma, so only the `hey` alias is available. You can add the alias manually if you want to: `alias hey,=hey`
+> [!NOTE] Usage with pnpm
+> pnpm does not like the comma, so only the `hey` alias is available. You can add the alias manually if you want to: `alias hey,=hey`
 
 ## Setup
 
@@ -110,7 +111,7 @@ _(colon is optional)_
 `hey, explain` will explain the data you pipe to it.
 
 > [!IMPORTANT]
-> Note: The piped data will be sent to OpenAI's servers, so you should only pipe data to `hey, explain` that you are comfortable sharing with OpenAI.
+> The piped data will be sent to OpenAI's servers, so you should only pipe data to `hey, explain` that you are comfortable sharing with OpenAI.
 
 ```sh
 cat mysterious.sh | hey, is this safe to run
