@@ -77,7 +77,7 @@ and follow the instructions. This will create a `.hey-comma` folder in your home
 If you're not comfortable with saving your api key as plain text, you can also set your api key as environment variable and configure `hey,` to read it from there:
 
 ```sh
-export OPENAI_API_KEY=sk-...
+export YOUR_ENV_VAR_NAME=sk-...
 hey, config set openai_api_key "env:YOUR_ENV_VAR_NAME"
 ```
 
