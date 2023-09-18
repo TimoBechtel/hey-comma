@@ -3,7 +3,11 @@ import { config } from './config.js';
 const { prompt } = enquirer;
 
 export async function setup() {
-	config.clear();
+	if (isConfigured()) {
+		console.log('hey, is already configured.');
+		console.log(`Delete ${config.path} to reset.`);
+		return;
+	}
 
 	console.log("Looks like you haven't configured the OpenAI API Token yet.");
 	console.log(
