@@ -58,7 +58,7 @@ hey, create a tarball with all files in the current directory, except javascript
 npm i -g hey-comma
 ```
 
-> [!NOTE] Usage with pnpm
+> [!NOTE]
 > pnpm does not like the comma, so only the `hey` alias is available. You can add the alias manually if you want to: `alias hey,=hey`
 
 ## Setup
