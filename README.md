@@ -100,7 +100,7 @@ hey, create a tarball with all files in the current dir, except js files
 You can explicitly specify the mode:
 
 ```sh
-hey, run: what are the largest files in my download directory
+hey, run: initialize a next.js project in ./my-app
 ```
 
 _(colon is optional)_
@@ -109,7 +109,8 @@ _(colon is optional)_
 
 `hey, explain` will explain the data you pipe to it.
 
-> Note: the piped data will be sent to OpenAI's servers, so you should only pipe data to `hey, explain` that you are comfortable sharing with OpenAI.
+> [!IMPORTANT]
+> Note: The piped data will be sent to OpenAI's servers, so you should only pipe data to `hey, explain` that you are comfortable sharing with OpenAI.
 
 ```sh
 cat mysterious.sh | hey, is this safe to run
@@ -131,7 +132,27 @@ To pass special characters to the `hey,`, you can pass them as a quoted string:
 hey, "what is the most recent file in ~/Documents?"
 ```
 
-## Use a different OpenAI model (e.g. GPT-4)
+## Configuration
+
+You can configure `hey,` using the `hey, config` command. Or by editing the `config.toml` directly. To get the path to the config file, run:
+
+```sh
+hey, config path
+```
+
+For example, `~/.hey-comma/config.toml`
+
+Available options:
+
+- `openai_api_key`: your OpenAI API key
+- `openai_model`: the OpenAI model to use (e.g. `gpt-3.5-turbo` or `gpt-4`) (default: `gpt-3.5-turbo`)
+- `temperature`: the temperature to use when generating commands (default: `0.2`)
+- `max_tokens`: the maximum number of tokens to generate (default: `256`)
+- `run_prompt`: the prompt to use when generating commands (see [Custom prompts](#custom-prompts))
+- `explain_prompt`: the prompt to use when explaining data (see [Custom prompts](#custom-prompts))
+- `cache.max_entries`: the maximum number of entries to cache (default: `50`)
+
+### Use a different OpenAI model (e.g. GPT-4)
 
 By default, `hey,` uses GPT-3 (gpt-). If you want to use another mode, like GPT-4, you can set the `openai_model` option:
 
@@ -145,7 +166,21 @@ You can also use gpt-4 for a single command:
 hey, "what is the most recent file in ~/Documents?" --gpt4
 ```
 
+> [!NOTE]
 > Note that gpt-4 is significantly more expensive and quite a bit slower than gpt-3.
+
+### Custom prompts
+
+You can customize the prompts used by `hey,` by setting the `run_prompt` and `explain_prompt` options. See [prompts.ts](https://github.com/TimoBechtel/hey-comma/blob/main/src/prompts.ts) for the default prompts.
+
+> [!IMPORTANT]
+> Make sure to add the placeholders (e.g. `%INSTRUCTION%`) to your custom prompts.
+
+The following placeholders are available:
+
+- `%INSTRUCTION%`: the instruction that is passed to `hey, run` or `hey, explain`
+- `%SHELL%`: the current shell (e.g. `bash` or `zsh`) (only available for `hey, run`)
+- `%INPUT%`: the data that is piped to `hey, explain` (only available for `hey, explain`)
 
 ## Data sent to OpenAI
 
@@ -155,7 +190,7 @@ hey, "what is the most recent file in ~/Documents?" --gpt4
 - The data you pipe to `hey, explain`
 - Your current shell (e.g. `bash` or `zsh`)
 
-## More examples
+## More usage examples
 
 <p align="center">
 <img width="650px" alt="running command example" src="./assets/ip-addr.gif">

@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import ora from 'ora';
+import { config } from '../config.js';
 import { context } from '../context.js';
 import { askAi } from '../openai.js';
 import { prompts } from '../prompts.js';
@@ -42,10 +43,20 @@ const explainCmd = program
 			return;
 		}
 
-		const prompt = prompts.explanation(input, question);
+		const customPrompt = config.get('explain_prompt');
+		const prompt = prompts.explanation({
+			context: input,
+			instruction: question,
+			customTemplate: customPrompt,
+		});
+
+		const maxTokens = config.get('max_tokens');
+		const temperature = config.get('temperature');
 
 		const { success, error, answer } = await askAi(prompt, {
 			overrideModel: options?.gpt4 ? 'gpt-4' : undefined,
+			maxTokens,
+			temperature,
 		});
 
 		if (!success) {

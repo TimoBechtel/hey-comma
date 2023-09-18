@@ -1,12 +1,13 @@
 import OpenAI from 'openai';
-import { config } from './config.js';
+import { config, defaultConfig } from './config.js';
 
 export async function askAi(
 	prompt: string,
 	{
-		maxTokens = 256,
+		maxTokens = defaultConfig.max_tokens,
 		overrideModel,
-	}: { maxTokens?: number; overrideModel?: string } = {}
+		temperature = defaultConfig.temperature,
+	}: { maxTokens?: number; overrideModel?: string; temperature?: number } = {}
 ): Promise<
 	| {
 			answer: string;
@@ -28,7 +29,8 @@ export async function askAi(
 		};
 	}
 
-	const model = overrideModel ?? config.get('openai_model', 'gpt-3.5-turbo');
+	const model =
+		overrideModel ?? config.get('openai_model', defaultConfig.openai_model);
 	const shouldUseLegacyAPI = useLegacyAPI(model);
 
 	const client = createOpenAIClient({ apiKey });
@@ -39,7 +41,7 @@ export async function askAi(
 			const result = await client.completions.create({
 				model,
 				prompt: JSON.stringify(prompt),
-				temperature: 0.2,
+				temperature,
 				max_tokens: maxTokens,
 			});
 			answer = result.choices[0]?.text;
@@ -52,7 +54,7 @@ export async function askAi(
 						content: JSON.stringify(prompt),
 					},
 				],
-				temperature: 0.2,
+				temperature,
 				max_tokens: maxTokens,
 			});
 			answer = result.choices[0]?.message.content;

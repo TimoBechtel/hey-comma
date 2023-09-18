@@ -4,6 +4,7 @@ import enquirer from 'enquirer';
 import { createInterface } from 'node:readline/promises';
 import ora from 'ora';
 import { cache } from '../cache.js';
+import { config } from '../config.js';
 import { context } from '../context.js';
 import { askAi } from '../openai.js';
 import { prompts } from '../prompts.js';
@@ -57,7 +58,14 @@ const runCmd = program
 			}
 
 			if (!command) {
-				const prompt = prompts.terminalCommand(instruction);
+				const customPrompt = config.get('run_prompt');
+				const prompt = prompts.terminalCommand({
+					instruction,
+					customTemplate: customPrompt,
+				});
+
+				const maxTokens = config.get('max_tokens');
+				const temperature = config.get('temperature');
 
 				const {
 					success,
@@ -65,6 +73,8 @@ const runCmd = program
 					answer: _command,
 				} = await askAi(prompt, {
 					overrideModel: options?.gpt4 ? 'gpt-4' : undefined,
+					maxTokens,
+					temperature,
 				});
 
 				if (!success) {

@@ -10,10 +10,23 @@ export const configPath = path.join(homedir, '.hey-comma');
 type Config = {
 	openai_api_key?: string;
 	openai_model?: string;
+	temperature?: number;
+	max_tokens?: number;
+	run_prompt?: string;
+	explain_prompt?: string;
 	cache?: {
 		max_entries?: number;
 	};
 };
+
+export const defaultConfig = {
+	openai_model: 'gpt-3.5-turbo',
+	temperature: 0.2,
+	max_tokens: 256,
+	cache: {
+		max_entries: 50,
+	},
+} satisfies Config;
 
 export const config = new Conf<Config>({
 	configName: 'config',
@@ -31,6 +44,20 @@ export const config = new Conf<Config>({
 		openai_model: {
 			type: 'string',
 		},
+		temperature: {
+			type: 'number',
+			minimum: 0,
+			maximum: 1,
+		},
+		max_tokens: {
+			type: 'number',
+		},
+		run_prompt: {
+			type: 'string',
+		},
+		explain_prompt: {
+			type: 'string',
+		},
 		cache: {
 			type: 'object',
 			properties: {
@@ -40,10 +67,5 @@ export const config = new Conf<Config>({
 			},
 		},
 	},
-	defaults: {
-		openai_model: 'gpt-3.5-turbo',
-		cache: {
-			max_entries: 50,
-		},
-	},
+	defaults: defaultConfig,
 });
