@@ -39,7 +39,7 @@ export async function askAi(
 			const result = await client.completions.create({
 				model,
 				prompt: JSON.stringify(prompt),
-				temperature: 0.7,
+				temperature: 0.2,
 				max_tokens: maxTokens,
 			});
 			answer = result.choices[0]?.text;
@@ -52,7 +52,7 @@ export async function askAi(
 						content: JSON.stringify(prompt),
 					},
 				],
-				temperature: 0.7,
+				temperature: 0.2,
 				max_tokens: maxTokens,
 			});
 			answer = result.choices[0]?.message.content;
