@@ -6,7 +6,9 @@ export async function setup() {
 	config.clear();
 
 	console.log("Looks like you haven't configured the OpenAI API Token yet.");
-	console.log('You can get one from https://beta.openai.com/account/api-keys');
+	console.log(
+		'You can get one from https://platform.openai.com/account/api-keys'
+	);
 
 	const answer = await prompt<{ token: string }>({
 		type: 'password',
