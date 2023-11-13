@@ -1,67 +1,67 @@
 {
-	"name": "hey-comma",
-	"version": "1.2.0",
-	"description": "Run shell commands using natural language",
-	"repository": "git@github.com:TimoBechtel/hey-comma.git",
-	"author": "Timo Bechtel",
-	"license": "MIT",
-	"type": "module",
-	"bin": {
-		"hey,": "./dist/index.js",
-		"hey": "./dist/index.js"
-	},
-	"engines": {
-		"node": ">=16"
-	},
-	"keywords": [
-		"gpt",
-		"hey comma",
-		"ai",
-		"shell"
-	],
-	"files": [
-		"dist",
-		"package.json"
-	],
-	"scripts": {
-		"prepare": "is-ci || husky install",
-		"prepack": "bun run build",
-		"build": "bun build.ts"
-	},
-	"config": {
-		"commitizen": {
-			"path": "cz-conventional-changelog"
-		}
-	},
-	"lint-staged": {
-		"*.{ts,tsx,js,jsx}": [
-			"eslint --fix"
-		],
-		"*.{ts,tsx,js,jsx,json,md,yml,yaml}": [
-			"prettier --write"
-		]
-	},
-	"devDependencies": {
-		"@commitlint/cli": "^17.7.1",
-		"@commitlint/config-conventional": "^17.7.0",
-		"@timobechtel/style": "^1.4.0",
-		"@types/node": "^20.6.0",
-		"bun-types": "^1.0.1",
-		"cz-conventional-changelog": "^3.3.0",
-		"eslint": "^8.49.0",
-		"husky": "^8.0.3",
-		"is-ci": "^3.0.1",
-		"lint-staged": "^14.0.1",
-		"prettier": "^3.0.3",
-		"semantic-release": "^21.1.1",
-		"typescript": "^5.2.2"
-	},
-	"dependencies": {
-		"@iarna/toml": "^2.2.5",
-		"commander": "^11.0.0",
-		"conf": "^11.0.2",
-		"enquirer": "^2.4.1",
-		"openai": "^4.6.0",
-		"ora": "^7.0.1"
-	}
+  "name": "hey-comma",
+  "version": "1.2.0",
+  "description": "Run shell commands using natural language",
+  "repository": "git@github.com:TimoBechtel/hey-comma.git",
+  "author": "Timo Bechtel",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "hey,": "./dist/index.js",
+    "hey": "./dist/index.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "keywords": [
+    "gpt",
+    "hey comma",
+    "ai",
+    "shell"
+  ],
+  "files": [
+    "dist",
+    "package.json"
+  ],
+  "scripts": {
+    "prepare": "is-ci || husky install",
+    "prepack": "bun run build",
+    "build": "bun build.ts"
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix"
+    ],
+    "*.{ts,tsx,js,jsx,json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.7.1",
+    "@commitlint/config-conventional": "^17.7.0",
+    "@timobechtel/style": "^1.4.0",
+    "@types/node": "^20.6.0",
+    "bun-types": "^1.0.1",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^8.49.0",
+    "husky": "^8.0.3",
+    "is-ci": "^3.0.1",
+    "lint-staged": "^14.0.1",
+    "prettier": "^3.0.3",
+    "semantic-release": "^21.1.1",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@iarna/toml": "^2.2.5",
+    "commander": "^11.0.0",
+    "conf": "^11.0.2",
+    "enquirer": "^2.4.1",
+    "openai": "^4.6.0",
+    "ora": "^7.0.1"
+  }
 }

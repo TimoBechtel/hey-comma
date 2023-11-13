@@ -1,20 +1,20 @@
 {
-	"extends": "@timobechtel/style/tsconfig/core",
-	"compilerOptions": {
-		"lib": ["esnext"],
-		"module": "esnext",
-		"target": "esnext",
-		"moduleResolution": "bundler",
-		"noEmit": true,
-		"allowImportingTsExtensions": true,
-		"moduleDetection": "force",
-		"outDir": "dist",
-		"rootDir": ".",
-		"noImplicitOverride": true,
-		"noImplicitReturns": true,
-		"noFallthroughCasesInSwitch": true,
-		"types": ["bun-types"]
-	},
-	"include": ["src", "build.ts"],
-	"exclude": ["node_modules"]
+  "extends": "@timobechtel/style/tsconfig/core",
+  "compilerOptions": {
+    "lib": ["esnext"],
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
+    "outDir": "dist",
+    "rootDir": ".",
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "types": ["bun-types"]
+  },
+  "include": ["src", "build.ts"],
+  "exclude": ["node_modules"]
 }

@@ -1,4 +1,0 @@
-# note: tabWidth, useTabs are set in .editorconfig
-semi: true
-singleQuote: true
-trailingComma: 'es5'

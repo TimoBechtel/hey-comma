@@ -1,3 +1,3 @@
 export const context: {
-	stdin?: string;
+  stdin?: string;
 } = {};
