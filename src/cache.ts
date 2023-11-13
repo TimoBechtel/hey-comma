@@ -1,9 +1,7 @@
 import Conf from 'conf';
 import { config, configPath } from './config.js';
 
-type CacheStore = {
-	[key: string]: string;
-};
+type CacheStore = Record<string, string>;
 
 const cacheStore = new Conf<CacheStore>({
 	configName: 'cache',
@@ -17,8 +15,9 @@ export const cache = {
 		return cacheStore.get(compress(key));
 	},
 	set(key: string, value: string) {
-		const maxEntries = (config.get('cache.max_entries') as number) ?? 0;
-		cleanup({ maxEntries });
+		const maxEntries: number | undefined = config.get('cache.max_entries');
+
+		cleanup({ maxEntries: maxEntries ?? 0 });
 		cacheStore.set(compress(key), value);
 	},
 	delete(key: string) {
@@ -30,7 +29,7 @@ export const cache = {
 };
 
 function compress(input: string) {
-	input = input.replace(/[^\w]+/g, '');
+	input = input.replaceAll(/[^\w]+/g, '');
 	input = input.toLowerCase();
 	return input;
 }

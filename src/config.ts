@@ -1,7 +1,7 @@
-import { parse, stringify } from '@iarna/toml';
-import Conf from 'conf';
 import { userInfo } from 'node:os';
 import path from 'node:path';
+import { parse, stringify } from '@iarna/toml';
+import Conf from 'conf';
 
 const { homedir } = userInfo();
 

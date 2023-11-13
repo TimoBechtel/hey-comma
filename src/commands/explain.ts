@@ -23,13 +23,9 @@ const explainCmd = program
 			);
 		}
 	})
-	.action(async (strings: string[], options?: { gpt4?: boolean }) => {
-		let question: string;
-		if (!strings || strings.length === 0) {
-			question = 'What is this?';
-		} else {
-			question = strings.join(' ');
-		}
+	.action(async (strings?: string[], options?: { gpt4?: boolean }) => {
+		const question =
+			!strings || strings.length === 0 ? 'What is this?' : strings.join(' ');
 
 		const spinner = ora('Thinking').start();
 
@@ -67,7 +63,7 @@ const explainCmd = program
 
 		spinner.stop();
 
-		console.log(answer);
+		console.info(answer);
 	});
 
 explainCmd.addHelpText(

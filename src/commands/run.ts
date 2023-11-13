@@ -1,7 +1,7 @@
-import { exec } from 'child_process';
+import { exec } from 'node:child_process';
+import { createInterface } from 'node:readline/promises';
 import { Command } from 'commander';
 import enquirer from 'enquirer';
-import { createInterface } from 'node:readline/promises';
 import ora from 'ora';
 import { cache } from '../cache.js';
 import { config } from '../config.js';
@@ -24,7 +24,7 @@ const runCmd = program
 			);
 		}
 	})
-	.action(async (strings: string[], options?: { gpt4?: boolean }) => {
+	.action(async (strings?: string[], options?: { gpt4?: boolean }) => {
 		if (context.stdin) {
 			runCmd.error(
 				'hey, does not support piping data to "hey, run". Please use "hey, run" without piping data. Or use "hey, explain"'
@@ -54,7 +54,7 @@ const runCmd = program
 			command = cache.get(instruction);
 			if (command) {
 				spinner.stop();
-				console.log('Using command from cache:');
+				console.info('Using command from cache:');
 			}
 
 			if (!command) {
@@ -82,7 +82,7 @@ const runCmd = program
 					return;
 				}
 
-				command = _command.trim().replace(/(^\n)|(\n$)/g, '');
+				command = _command.trim().replaceAll(/(^\n)|(\n$)/g, '');
 
 				if (!command) {
 					spinner.stop();
@@ -93,7 +93,7 @@ const runCmd = program
 
 			spinner.stop();
 
-			console.log(command);
+			console.info(command);
 
 			let option: 'yes' | 'cancel' | 'retry' | 'edit';
 
@@ -163,7 +163,7 @@ const runCmd = program
 
 					cache.set(instruction, _command);
 
-					console.log(`${stdout}`);
+					console.info(`${stdout}`);
 				});
 			}
 		}

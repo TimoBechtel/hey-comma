@@ -13,6 +13,6 @@ const result = await Bun.build({
 });
 
 if (!result.success) {
-	console.log(result.logs);
+	console.error(result.logs);
 	process.exit(1);
 }

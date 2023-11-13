@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { config, configPath } from '../config.js';
+
 const program = new Command();
 
 const configCmd = program.command('config').description('configure hey,');
@@ -20,9 +21,9 @@ configCmd
 	.description('get a configuration value')
 	.action((key?: string) => {
 		if (key) {
-			console.log(config.get(key));
+			console.info(config.get(key));
 		} else {
-			console.log(config.store);
+			console.info(config.store);
 		}
 	});
 
@@ -30,7 +31,7 @@ configCmd
 	.command('path')
 	.description('print the path to the configuration files')
 	.action(() => {
-		console.log(configPath);
+		console.info(configPath);
 	});
 
 export default configCmd;

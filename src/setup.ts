@@ -1,16 +1,17 @@
 import enquirer from 'enquirer';
 import { config } from './config.js';
+
 const { prompt } = enquirer;
 
 export async function setup() {
 	if (isConfigured()) {
-		console.log('hey, is already configured.');
-		console.log(`Delete ${config.path} to reset.`);
+		console.info('hey, is already configured.');
+		console.info(`Delete ${config.path} to reset.`);
 		return;
 	}
 
-	console.log("Looks like you haven't configured the OpenAI API Token yet.");
-	console.log(
+	console.info("Looks like you haven't configured the OpenAI API Token yet.");
+	console.info(
 		'You can get one from https://platform.openai.com/account/api-keys'
 	);
 

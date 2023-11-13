@@ -43,7 +43,7 @@ async function run() {
 		await new Promise<void>((resolve) => {
 			// Read from stdin (e.g. `echo "hello" | hey, <instruction>`)
 			process.stdin.on('readable', () => {
-				const chunk = process.stdin.read();
+				const chunk = process.stdin.read() as string | null;
 				if (chunk !== null) {
 					context.stdin += chunk;
 				}

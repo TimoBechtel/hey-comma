@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import { OpenAI } from 'openai';
 import { config, defaultConfig } from './config.js';
 
 export async function askAi(
@@ -69,14 +69,14 @@ export async function askAi(
 		}
 
 		return {
-			answer: answer,
+			answer,
 			success: true,
 			error: null,
 		};
 	} catch (error) {
 		if (error instanceof OpenAI.APIError) {
 			return {
-				error: 'OpenAI API error: ' + error.message,
+				error: `OpenAI API error: ${error.message}`,
 				success: false,
 				answer: null,
 			};
