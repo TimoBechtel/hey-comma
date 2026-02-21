@@ -44,7 +44,11 @@ const runCmd = program
       instruction = strings.join(' ');
     }
 
-    const spinner = ora('Thinking');
+    const spinner = ora({
+      text: 'Thinking',
+      discardStdin: false,
+      hideCursor: false,
+    });
 
     async function getCommand() {
       spinner.start();

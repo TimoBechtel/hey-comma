@@ -27,7 +27,11 @@ const explainCmd = program
     const question =
       !strings || strings.length === 0 ? 'What is this?' : strings.join(' ');
 
-    const spinner = ora('Thinking').start();
+    const spinner = ora({
+      text: 'Thinking',
+      discardStdin: false,
+      hideCursor: false,
+    }).start();
 
     const input = context.stdin;
 
