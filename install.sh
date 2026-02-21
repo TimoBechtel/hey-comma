@@ -3,6 +3,7 @@ set -euo pipefail
 
 REPO="TimoBechtel/hey-comma"
 BIN_NAME="hey"
+BIN_ALIAS="hey,"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 
 log() {
@@ -84,12 +85,13 @@ main() {
   require_cmd mkdir
   require_cmd uname
 
-  local asset tag url tmp_file final_path
+  local asset tag url tmp_file final_path alias_path
   asset="$(detect_asset)"
   tag="$(resolve_tag)"
   url="https://github.com/$REPO/releases/download/$tag/$asset"
   tmp_file="$(mktemp)"
   final_path="$INSTALL_DIR/$BIN_NAME"
+  alias_path="$INSTALL_DIR/$BIN_ALIAS"
 
   log "Installing $BIN_NAME $tag"
   log "Downloading $asset"
@@ -98,8 +100,10 @@ main() {
   mkdir -p "$INSTALL_DIR"
   chmod +x "$tmp_file"
   mv "$tmp_file" "$final_path"
+  ln -sf "$final_path" "$alias_path"
 
   log "Installed to $final_path"
+  log "Alias created at $alias_path"
   check_path
 
   if "$final_path" --version >/dev/null 2>&1; then
