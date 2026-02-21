@@ -32,6 +32,7 @@
     "build": "bun build.ts",
     "build:npm": "bun run build",
     "build:binary": "bun build ./src/index.ts --compile --outfile ./dist/hey --minify",
+    "install-global": "bun run build:binary && INSTALL_DIR=${INSTALL_DIR:-$HOME/.local/bin} && mkdir -p \"$INSTALL_DIR\" && cp ./dist/hey \"$INSTALL_DIR/hey\" && chmod +x \"$INSTALL_DIR/hey\" && ln -sf \"$INSTALL_DIR/hey\" \"$INSTALL_DIR/hey,\"",
     "build:linux": "bun build ./src/index.ts --compile --target=bun-linux-x64 --outfile ./dist/hey-linux-x64 --minify",
     "build:windows": "bun build ./src/index.ts --compile --target=bun-windows-x64 --outfile ./dist/hey-windows-x64.exe --minify",
     "build:macos": "bun build ./src/index.ts --compile --target=bun-darwin-arm64 --outfile ./dist/hey-darwin-arm64 --minify",
