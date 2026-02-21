@@ -34,7 +34,15 @@ export async function askAi(
     }
 > {
   try {
-    const { provider, model } = resolveModelSelector(overrideModel);
+    const resolved = resolveModelSelector(overrideModel);
+    let provider = resolved.provider;
+    let model = resolved.model;
+
+    if (shouldFallbackToOpenRouter(provider)) {
+      model = `${provider}/${model}`;
+      provider = 'openrouter';
+    }
+
     const modelFactory = resolveModelFactory(provider);
     const llm = modelFactory(model);
     const disableThinking = config.get(
@@ -136,6 +144,33 @@ function resolveModelFactory(provider: ProviderName) {
     apiKey,
     openrouterBaseUrl,
   });
+}
+
+function shouldFallbackToOpenRouter(provider: ProviderName) {
+  if (provider === 'openrouter') {
+    return false;
+  }
+
+  const defaultProvider = config.get(
+    'default_provider',
+    defaultConfig.default_provider,
+  );
+
+  if (defaultProvider !== 'openrouter') {
+    return false;
+  }
+
+  const providerConfig = providers[provider];
+
+  if (hasApiKey(providerConfig.apiKeyConfigKey)) {
+    return false;
+  }
+
+  return hasApiKey(providers.openrouter.apiKeyConfigKey);
+}
+
+function hasApiKey(configKey: ApiKeyConfigKey) {
+  return Boolean(resolveKey(config.get(configKey)));
 }
 
 function getApiKey(configKey: ApiKeyConfigKey, envName: string) {
