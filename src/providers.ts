@@ -21,13 +21,13 @@ export const providers = {
   openai: {
     apiKeyConfigKey: 'openai_api_key',
     envVar: 'OPENAI_API_KEY',
-    defaultModel: 'gpt-4o-mini',
+    defaultModel: 'gpt-5.1-codex-mini',
     createModelFactory: ({ apiKey }) => createOpenAI({ apiKey }),
   },
   anthropic: {
     apiKeyConfigKey: 'anthropic_api_key',
     envVar: 'ANTHROPIC_API_KEY',
-    defaultModel: 'claude-sonnet-4-5',
+    defaultModel: 'claude-haiku-4-5',
     createModelFactory: ({ apiKey }) => createAnthropic({ apiKey }),
   },
   google: {
@@ -39,7 +39,7 @@ export const providers = {
   openrouter: {
     apiKeyConfigKey: 'openrouter_api_key',
     envVar: 'OPENROUTER_API_KEY',
-    defaultModel: 'openai/gpt-4o-mini',
+    defaultModel: 'openai/gpt-5.1-codex-mini',
     createModelFactory: ({ apiKey, openrouterBaseUrl }) =>
       createOpenRouter({
         apiKey,
