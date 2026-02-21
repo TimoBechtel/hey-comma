@@ -37,12 +37,20 @@ export async function askAi(
     const { provider, model } = resolveModelSelector(overrideModel);
     const modelFactory = resolveModelFactory(provider);
     const llm = modelFactory(model);
+    const disableThinking = config.get(
+      'disable_thinking',
+      defaultConfig.disable_thinking,
+    );
+    const providerOptions = providers[provider].getProviderOptions({
+      disableThinking,
+    });
 
     const result = await generateText({
       model: llm,
       prompt,
       maxOutputTokens: maxTokens,
       temperature,
+      ...(providerOptions ? { providerOptions } : {}),
     });
 
     const answer = result.text.trim();

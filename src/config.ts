@@ -20,6 +20,7 @@ type Config = ProviderApiKeyConfig & {
   default_model?: string;
   model_aliases?: Record<string, string>;
   openrouter_base_url?: string;
+  disable_thinking?: boolean;
   temperature?: number;
   max_tokens?: number;
   run_prompt?: string;
@@ -34,6 +35,7 @@ export const defaultConfig = {
   default_model: providers.openai.defaultModel,
   model_aliases: {},
   openrouter_base_url: 'https://openrouter.ai/api/v1',
+  disable_thinking: false,
   temperature: 0.2,
   max_tokens: 1200,
   cache: {
@@ -76,6 +78,9 @@ export const config = new Conf<Config>({
     ...providerApiKeySchema,
     openrouter_base_url: {
       type: 'string',
+    },
+    disable_thinking: {
+      type: 'boolean',
     },
     temperature: {
       type: 'number',

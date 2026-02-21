@@ -11,6 +11,10 @@ type ProviderFactoryOptions = {
   openrouterBaseUrl?: string;
 };
 
+type ProviderOptionsInput = {
+  disableThinking: boolean;
+};
+
 type ProviderDefinition = {
   apiKeyConfigKey: `${string}_api_key`;
   envVar: string;
@@ -18,6 +22,9 @@ type ProviderDefinition = {
   createModelFactory: (
     options: ProviderFactoryOptions,
   ) => (model: string) => unknown;
+  getProviderOptions?: (
+    options: ProviderOptionsInput,
+  ) => Record<string, unknown> | undefined;
 };
 
 export const providers = {
@@ -26,18 +33,25 @@ export const providers = {
     envVar: 'OPENAI_API_KEY',
     defaultModel: 'gpt-5.1-codex-mini',
     createModelFactory: ({ apiKey }) => createOpenAI({ apiKey }),
+    getProviderOptions: ({ disableThinking }) =>
+      disableThinking ? { openai: { reasoningEffort: 'minimal' } } : undefined,
   },
   anthropic: {
     apiKeyConfigKey: 'anthropic_api_key',
     envVar: 'ANTHROPIC_API_KEY',
     defaultModel: 'claude-haiku-4-5',
     createModelFactory: ({ apiKey }) => createAnthropic({ apiKey }),
+    getProviderOptions: ({ disableThinking }) =>
+      disableThinking
+        ? { anthropic: { thinking: { type: 'disabled' } } }
+        : undefined,
   },
   google: {
     apiKeyConfigKey: 'google_api_key',
     envVar: 'GOOGLE_API_KEY',
     defaultModel: 'gemini-2.5-flash',
     createModelFactory: ({ apiKey }) => createGoogleGenerativeAI({ apiKey }),
+    getProviderOptions: () => undefined,
   },
   openrouter: {
     apiKeyConfigKey: 'openrouter_api_key',
@@ -48,6 +62,10 @@ export const providers = {
         apiKey,
         baseURL: openrouterBaseUrl,
       }),
+    getProviderOptions: ({ disableThinking }) =>
+      disableThinking
+        ? { openrouter: { reasoning: { max_tokens: 0 } } }
+        : undefined,
   },
 } as const satisfies Record<string, ProviderDefinition>;
 
