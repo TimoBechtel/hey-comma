@@ -1,1 +1,46 @@
-{ "extends": "@timobechtel/style/semantic-release/index.cjs" }
+{
+  "branches": ["main"],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "bun run build:all"
+      }
+    ],
+    [
+      "@semantic-release/npm",
+      {
+        "npmPublish": true
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "dist/hey-darwin-arm64",
+            "name": "hey-darwin-arm64",
+            "label": "macOS ARM64"
+          },
+          {
+            "path": "dist/hey-darwin-x64",
+            "name": "hey-darwin-x64",
+            "label": "macOS Intel x64"
+          },
+          {
+            "path": "dist/hey-linux-x64",
+            "name": "hey-linux-x64",
+            "label": "Linux x64"
+          },
+          {
+            "path": "dist/hey-windows-x64.exe",
+            "name": "hey-windows-x64.exe",
+            "label": "Windows x64"
+          }
+        ]
+      }
+    ]
+  ]
+}

@@ -255,3 +255,8 @@ bun run build:all
 ### Commit messages
 
 This project uses semantic-release for automated release versions. So commits in this project follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0-beta.2/) guidelines. I recommend using [commitizen](https://github.com/commitizen/cz-cli) for automated commit messages.
+
+### Release publishing
+
+`main` releases use semantic-release and npm Trusted Publishing (OIDC).  
+Maintainers must configure `TimoBechtel/hey-comma` as a trusted publisher in npm package settings before release workflows can publish.
