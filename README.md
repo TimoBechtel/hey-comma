@@ -31,19 +31,19 @@ hey,
 
 ## About
 
-Use natural language to run shell commands with modern AI models.
+Use natural language to turn tasks into shell commands.
 
 Just say what you want to do and `hey,` will generate the command for you.
 
 ### Features
 
 - use natural language to run shell commands
-- explain files, scripts or piped data using modern LLMs
+- explain files, scripts, and piped input with your configured model
 - caches successful commands to speed up future runs
 
 ### Why?
 
-Shell scrips are powerful, but only if you know how to use them. `hey,` makes it easier to use shell scripts by using natural language.
+Shell scripts are powerful, but only if you remember the exact commands. `hey,` is for the moments when you know what you want, but not the syntax.
 
 Always forget the command to pack a directory into a tarball? Just say it:
 
@@ -53,7 +53,7 @@ hey, create a tarball with all files in the current directory, except javascript
 
 ## Install
 
-### Binary install (recommended)
+### Binary install
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/TimoBechtel/hey-comma/main/install.sh | bash
@@ -79,7 +79,7 @@ npm i -g hey-comma
 
 ### AI provider setup
 
-`hey,` supports `openai`, `anthropic`, `google`, and `openrouter`.
+`hey,` works with `openai`, `anthropic`, `google`, and `openrouter`.
 
 Then, run:
 
@@ -87,9 +87,9 @@ Then, run:
 hey, setup
 ```
 
-and follow the instructions. This will create a `.hey-comma` folder in your home directory and store your API key there.
+and follow the prompts. This creates `~/.hey-comma/config.toml`.
 
-If you prefer environment variables, set the key and store it as `env:VAR_NAME` in config:
+If you prefer environment variables, set the key and point config to it:
 
 ```sh
 export OPENROUTER_API_KEY=...
@@ -125,7 +125,7 @@ _(colon is optional)_
 `hey, explain` will explain the data you pipe to it.
 
 > [!IMPORTANT]
-> Piped data is sent to your configured model provider. Only send data you are comfortable sharing with that provider.
+> Piped data is sent to your configured provider. Do not pipe secrets you would not send to that service.
 
 ```sh
 cat mysterious.sh | hey, is this safe to run
@@ -175,14 +175,14 @@ Available options:
 
 ### Model selector
 
-Use `--model` for one-off overrides:
+Use `--model` when you want to override your defaults:
 
 ```sh
 hey, run --model anthropic/claude-sonnet-4-5 "create a tarball from this folder"
 hey, explain --model openrouter/openai/gpt-4o "what does this script do?"
 ```
 
-`--model` supports:
+Accepted forms:
 
 - full selector: `<provider>/<model>`
 - alias from `model_aliases`
@@ -212,7 +212,7 @@ The following placeholders are available:
 
 ## Data sent to providers
 
-`hey,` will send the following data to your configured provider:
+`hey,` sends this data to your configured provider:
 
 - The command you want to run
 - The data you pipe to `hey, explain`
@@ -220,7 +220,7 @@ The following placeholders are available:
 
 ## Migration to v2
 
-This release is intentionally breaking and does not keep backward compatibility.
+v2 is intentionally breaking. There is no compatibility layer for old flags or old config keys.
 
 Removed:
 
@@ -287,5 +287,5 @@ This project uses semantic-release for automated release versions. So commits in
 
 ### Release publishing
 
-`main` releases use semantic-release and npm Trusted Publishing (OIDC).  
-Maintainers must configure `TimoBechtel/hey-comma` as a trusted publisher in npm package settings before release workflows can publish.
+`main` releases use semantic-release with npm Trusted Publishing (OIDC).  
+Before publishing, configure `TimoBechtel/hey-comma` as a trusted publisher in npm package settings.
