@@ -57,11 +57,16 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.46",
+    "@ai-sdk/google": "^3.0.30",
+    "@ai-sdk/openai": "^3.0.30",
     "@iarna/toml": "^2.2.5",
+    "@openrouter/ai-sdk-provider": "^2.2.3",
+    "ai": "^6.0.97",
     "commander": "^14.0.3",
     "conf": "^11.0.2",
     "enquirer": "^2.4.1",
-    "openai": "^4.104.0",
+    "openai": "^6.22.0",
     "ora": "^9.3.0"
   }
 }
