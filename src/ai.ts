@@ -40,7 +40,7 @@ export async function askAi(
 
     const result = await generateText({
       model: llm,
-      prompt: JSON.stringify(prompt),
+      prompt,
       maxOutputTokens: maxTokens,
       temperature,
     });
@@ -48,7 +48,7 @@ export async function askAi(
     const answer = result.text.trim();
     if (!answer) {
       return {
-        error: 'Error: The AI returned an empty answer.',
+        error: `Error: The AI returned an empty answer. Finish reason: ${result.finishReason}`,
         success: false,
         answer: null,
       };

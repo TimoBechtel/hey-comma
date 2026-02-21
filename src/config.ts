@@ -3,8 +3,8 @@ import path from 'node:path';
 import { parse, stringify } from '@iarna/toml';
 import Conf from 'conf';
 import {
-  providers,
   providerNames,
+  providers,
   type ApiKeyConfigKey,
   type ProviderName,
 } from './providers.js';
@@ -35,7 +35,7 @@ export const defaultConfig = {
   model_aliases: {},
   openrouter_base_url: 'https://openrouter.ai/api/v1',
   temperature: 0.2,
-  max_tokens: 256,
+  max_tokens: 1200,
   cache: {
     max_entries: 50,
   },
