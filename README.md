@@ -24,20 +24,21 @@ hey,
 - [Usage](#usage)
   - [`hey, run`](#hey-run)
   - [`hey, explain`](#hey-explain)
-- [Data sent to OpenAI](#data-sent-to-openai)
+- [Data sent to providers](#data-sent-to-providers)
+- [Migration to v2](#migration-to-v2)
 - [More examples](#more-examples)
 - [Contributing](#contributing)
 
 ## About
 
-Use natural language to run shell commands using GPT-3.
+Use natural language to run shell commands with modern AI models.
 
 Just say what you want to do and `hey,` will generate the command for you.
 
 ### Features
 
 - use natural language to run shell commands
-- explains files, scripts or any data scripts using GPT-3
+- explain files, scripts or piped data using modern LLMs
 - caches successful commands to speed up future runs
 
 ### Why?
@@ -76,9 +77,9 @@ npm i -g hey-comma
 
 ## Setup
 
-### OpenAI API key
+### AI provider setup
 
-`hey,` uses OpenAI's API to generate the commands. You need to [sign up for an OpenAI account](https://beta.openai.com/signup) and [create an API key](https://beta.openai.com/account/api-keys).
+`hey,` supports `openai`, `anthropic`, `google`, and `openrouter`.
 
 Then, run:
 
@@ -88,11 +89,11 @@ hey, setup
 
 and follow the instructions. This will create a `.hey-comma` folder in your home directory and store your API key there.
 
-If you're not comfortable with saving your api key as plain text, you can also set your api key as environment variable and configure `hey,` to read it from there:
+If you prefer environment variables, set the key and store it as `env:VAR_NAME` in config:
 
 ```sh
-export YOUR_ENV_VAR_NAME=sk-...
-hey, config set openai_api_key "env:YOUR_ENV_VAR_NAME"
+export OPENROUTER_API_KEY=...
+hey, config set openrouter_api_key "env:OPENROUTER_API_KEY"
 ```
 
 ## Usage
@@ -124,7 +125,7 @@ _(colon is optional)_
 `hey, explain` will explain the data you pipe to it.
 
 > [!IMPORTANT]
-> The piped data will be sent to OpenAI's servers, so you should only pipe data to `hey, explain` that you are comfortable sharing with OpenAI.
+> Piped data is sent to your configured model provider. Only send data you are comfortable sharing with that provider.
 
 ```sh
 cat mysterious.sh | hey, is this safe to run
@@ -158,30 +159,43 @@ For example, `~/.hey-comma/config.toml`
 
 Available options:
 
-- `openai_api_key`: your OpenAI API key
-- `openai_model`: the OpenAI model to use (e.g. `gpt-3.5-turbo` or `gpt-4`) (default: `gpt-3.5-turbo`)
+- `default_provider`: default provider (`openai`, `anthropic`, `google`, `openrouter`)
+- `default_model`: default model name for your default provider
+- `model_aliases`: alias map for model selectors (e.g. `smart = "anthropic/claude-sonnet-4-5"`)
+- `openai_api_key`: OpenAI API key (or `env:OPENAI_API_KEY`)
+- `anthropic_api_key`: Anthropic API key (or `env:ANTHROPIC_API_KEY`)
+- `google_api_key`: Google API key (or `env:GOOGLE_API_KEY`)
+- `openrouter_api_key`: OpenRouter API key (or `env:OPENROUTER_API_KEY`)
+- `openrouter_base_url`: OpenRouter base URL (default: `https://openrouter.ai/api/v1`)
 - `temperature`: the temperature to use when generating commands (default: `0.2`)
 - `max_tokens`: the maximum number of tokens to generate (default: `256`)
 - `run_prompt`: the prompt to use when generating commands (see [Custom prompts](#custom-prompts))
 - `explain_prompt`: the prompt to use when explaining data (see [Custom prompts](#custom-prompts))
 - `cache.max_entries`: the maximum number of entries to cache (default: `50`)
 
-### Use a different OpenAI model (e.g. GPT-4)
+### Model selector
 
-By default, `hey,` uses GPT-3 (gpt-). If you want to use another mode, like GPT-4, you can set the `openai_model` option:
-
-```sh
-hey, config set openai_model gpt-4
-```
-
-You can also use gpt-4 for a single command:
+Use `--model` for one-off overrides:
 
 ```sh
-hey, "what is the most recent file in ~/Documents?" --gpt4
+hey, run --model anthropic/claude-sonnet-4-5 "create a tarball from this folder"
+hey, explain --model openrouter/openai/gpt-4o "what does this script do?"
 ```
 
-> [!NOTE]
-> Note that gpt-4 is significantly more expensive and quite a bit slower than gpt-3.
+`--model` supports:
+
+- full selector: `<provider>/<model>`
+- alias from `model_aliases`
+- bare model name (resolved with `default_provider`)
+
+Example aliases:
+
+```toml
+[model_aliases]
+fast = "openai/gpt-4o-mini"
+smart = "anthropic/claude-sonnet-4-5"
+cheap = "google/gemini-2.5-flash"
+```
 
 ### Custom prompts
 
@@ -196,13 +210,28 @@ The following placeholders are available:
 - `%SHELL%`: the current shell (e.g. `bash` or `zsh`) (only available for `hey, run`)
 - `%INPUT%`: the data that is piped to `hey, explain` (only available for `hey, explain`)
 
-## Data sent to OpenAI
+## Data sent to providers
 
-`hey,` will send the following data to OpenAI:
+`hey,` will send the following data to your configured provider:
 
 - The command you want to run
 - The data you pipe to `hey, explain`
 - Your current shell (e.g. `bash` or `zsh`)
+
+## Migration to v2
+
+This release is intentionally breaking and does not keep backward compatibility.
+
+Removed:
+
+- `--gpt4`
+- `openai_model`
+- OpenAI-only runtime behavior
+
+Use this instead:
+
+- `--model <provider/model>` (or alias / bare model with default provider)
+- `default_provider`, `default_model`, and `[model_aliases]` in config
 
 ## More usage examples
 
