@@ -21,9 +21,9 @@ configCmd
   .description('get a configuration value')
   .action((key?: string) => {
     if (key) {
-      console.info(config.get(key));
+      console.info(JSON.stringify(config.get(key), null, 2));
     } else {
-      console.info(config.store);
+      console.info(JSON.stringify(config.store, null, 2));
     }
   });
 
