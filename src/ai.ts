@@ -81,18 +81,23 @@ function resolveModelSelector(rawModel?: string): {
   }
 
   const slashIndex = selector.indexOf('/');
+  const defaultProvider = config.get(
+    'default_provider',
+    defaultConfig.default_provider,
+  );
+
   if (slashIndex === -1) {
-    const provider = config.get(
-      'default_provider',
-      defaultConfig.default_provider,
-    );
-    return { provider, model: selector };
+    return { provider: defaultProvider, model: selector };
   }
 
   const providerPrefix = selector.slice(0, slashIndex);
   const model = selector.slice(slashIndex + 1);
 
   if (!isProviderName(providerPrefix)) {
+    if (defaultProvider === 'openrouter') {
+      return { provider: defaultProvider, model: selector };
+    }
+
     throw new Error(
       `Unknown provider "${providerPrefix}". Use one of: openai, anthropic, google, openrouter.`,
     );
