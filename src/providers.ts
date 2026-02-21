@@ -3,6 +3,9 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 
+// disable warnings, like temperature not supported by some models
+(globalThis as { AI_SDK_LOG_WARNINGS?: boolean }).AI_SDK_LOG_WARNINGS = false;
+
 type ProviderFactoryOptions = {
   apiKey: string;
   openrouterBaseUrl?: string;
