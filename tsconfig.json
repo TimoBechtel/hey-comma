@@ -16,6 +16,6 @@
     "noFallthroughCasesInSwitch": true,
     "types": ["bun-types"]
   },
-  "include": ["src"],
+  "include": ["src", "package.json"],
   "exclude": ["node_modules"]
 }

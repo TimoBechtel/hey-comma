@@ -7,9 +7,17 @@ const { homedir } = userInfo();
 
 export const configPath = path.join(homedir, '.hey-comma');
 
+export type ProviderName = 'openai' | 'anthropic' | 'google' | 'openrouter';
+
 type Config = {
+  default_provider?: ProviderName;
+  default_model?: string;
+  model_aliases?: Record<string, string>;
   openai_api_key?: string;
-  openai_model?: string;
+  anthropic_api_key?: string;
+  google_api_key?: string;
+  openrouter_api_key?: string;
+  openrouter_base_url?: string;
   temperature?: number;
   max_tokens?: number;
   run_prompt?: string;
@@ -20,7 +28,10 @@ type Config = {
 };
 
 export const defaultConfig = {
-  openai_model: 'gpt-3.5-turbo',
+  default_provider: 'openai',
+  default_model: 'gpt-4o-mini',
+  model_aliases: {},
+  openrouter_base_url: 'https://openrouter.ai/api/v1',
   temperature: 0.2,
   max_tokens: 256,
   cache: {
@@ -37,11 +48,36 @@ export const config = new Conf<Config>({
   serialize: stringify,
   projectSuffix: '',
   schema: {
+    default_provider: {
+      type: 'string',
+      enum: ['openai', 'anthropic', 'google', 'openrouter'],
+    },
+    default_model: {
+      type: 'string',
+    },
+    model_aliases: {
+      type: 'object',
+      additionalProperties: {
+        type: 'string',
+      },
+    },
     openai_api_key: {
       type: 'string',
       format: 'password',
     },
-    openai_model: {
+    anthropic_api_key: {
+      type: 'string',
+      format: 'password',
+    },
+    google_api_key: {
+      type: 'string',
+      format: 'password',
+    },
+    openrouter_api_key: {
+      type: 'string',
+      format: 'password',
+    },
+    openrouter_base_url: {
       type: 'string',
     },
     temperature: {
