@@ -68,6 +68,7 @@ Supported binaries:
 
 ### npm install
 
+Requires Node.js **22 or later** when installed via npm.
 ```sh
 npm i -g hey-comma
 ```
