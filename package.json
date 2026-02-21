@@ -10,8 +10,8 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "hey,": "./dist/hey",
-    "hey": "./dist/hey"
+    "hey,": "./dist/index.js",
+    "hey": "./dist/index.js"
   },
   "engines": {
     "node": ">=22"
@@ -29,7 +29,9 @@
   "scripts": {
     "prepare": "is-ci || husky install",
     "prepack": "bun run build",
-    "build": "bun build ./src/index.ts --compile --outfile ./dist/hey --minify",
+    "build": "bun build.ts",
+    "build:npm": "bun run build",
+    "build:binary": "bun build ./src/index.ts --compile --outfile ./dist/hey --minify",
     "build:linux": "bun build ./src/index.ts --compile --target=bun-linux-x64 --outfile ./dist/hey-linux-x64 --minify",
     "build:windows": "bun build ./src/index.ts --compile --target=bun-windows-x64 --outfile ./dist/hey-windows-x64.exe --minify",
     "build:macos": "bun build ./src/index.ts --compile --target=bun-darwin-arm64 --outfile ./dist/hey-darwin-arm64 --minify",
