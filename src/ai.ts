@@ -131,10 +131,7 @@ function resolveModelSelector(rawModel?: string): {
 
 function resolveModelFactory(provider: ProviderName) {
   const providerConfig = providers[provider];
-  const apiKey = getApiKey(
-    providerConfig.apiKeyConfigKey,
-    providerConfig.envVar,
-  );
+  const apiKey = getApiKey(providerConfig.apiKeyConfigKey);
   const openrouterBaseUrl = config.get(
     'openrouter_base_url',
     defaultConfig.openrouter_base_url,
@@ -173,13 +170,13 @@ function hasApiKey(configKey: ApiKeyConfigKey) {
   return Boolean(resolveKey(config.get(configKey)));
 }
 
-function getApiKey(configKey: ApiKeyConfigKey, envName: string) {
+function getApiKey(configKey: ApiKeyConfigKey) {
   const configured = config.get(configKey);
   const key = resolveKey(configured);
 
   if (!key) {
     throw new Error(
-      `Missing API key for ${configKey}. Set ${configKey} or use env:${envName} in config.`,
+      `Missing API key for ${configKey}. Set ${configKey} or use env:MY_API_KEY in config.`,
     );
   }
 
