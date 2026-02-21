@@ -167,7 +167,7 @@ Available options:
 - `google_api_key`: Google API key (or `env:GOOGLE_API_KEY`)
 - `openrouter_api_key`: OpenRouter API key (or `env:OPENROUTER_API_KEY`)
 - `openrouter_base_url`: OpenRouter base URL (default: `https://openrouter.ai/api/v1`)
-- `disable_thinking`: disable provider reasoning/thinking modes where supported (default: `true`)
+- `disable_thinking`: disable provider reasoning/thinking modes where supported (default: `false`)
 - `temperature`: the temperature to use when generating commands (default: `0.2`)
 - `max_tokens`: the maximum number of tokens to generate (default: `1200`)
 - `run_prompt`: the prompt to use when generating commands (see [Custom prompts](#custom-prompts))
