@@ -1,9 +1,12 @@
-import { anthropic, createAnthropic } from '@ai-sdk/anthropic';
-import { createGoogleGenerativeAI, google } from '@ai-sdk/google';
-import { createOpenAI, openai } from '@ai-sdk/openai';
-import { createOpenRouter, openrouter } from '@openrouter/ai-sdk-provider';
 import { generateText } from 'ai';
-import { config, defaultConfig, type ProviderName } from './config.js';
+import { config, defaultConfig } from './config.js';
+import {
+  isProviderName,
+  providerNames,
+  providers,
+  type ApiKeyConfigKey,
+  type ProviderName,
+} from './providers.js';
 
 type AskAiOptions = {
   maxTokens?: number;
@@ -99,7 +102,7 @@ function resolveModelSelector(rawModel?: string): {
     }
 
     throw new Error(
-      `Unknown provider "${providerPrefix}". Use one of: openai, anthropic, google, openrouter.`,
+      `Unknown provider "${providerPrefix}". Use one of: ${providerNames.join(', ')}.`,
     );
   }
 
@@ -110,44 +113,24 @@ function resolveModelSelector(rawModel?: string): {
   return { provider: providerPrefix, model };
 }
 
-function isProviderName(provider: string): provider is ProviderName {
-  return (
-    provider === 'openai' ||
-    provider === 'anthropic' ||
-    provider === 'google' ||
-    provider === 'openrouter'
-  );
-}
-
 function resolveModelFactory(provider: ProviderName) {
-  switch (provider) {
-    case 'openai': {
-      const apiKey = getApiKey('openai_api_key', 'OPENAI_API_KEY');
-      return createOpenAI({ apiKey });
-    }
-    case 'anthropic': {
-      const apiKey = getApiKey('anthropic_api_key', 'ANTHROPIC_API_KEY');
-      return createAnthropic({ apiKey });
-    }
-    case 'google': {
-      const apiKey = getApiKey('google_api_key', 'GOOGLE_API_KEY');
-      return createGoogleGenerativeAI({ apiKey });
-    }
-    case 'openrouter': {
-      const apiKey = getApiKey('openrouter_api_key', 'OPENROUTER_API_KEY');
-      const baseURL = config.get(
-        'openrouter_base_url',
-        defaultConfig.openrouter_base_url,
-      );
-      return createOpenRouter({ apiKey, baseURL });
-    }
-    default: {
-      throw new Error('Unsupported provider.');
-    }
-  }
+  const providerConfig = providers[provider];
+  const apiKey = getApiKey(
+    providerConfig.apiKeyConfigKey,
+    providerConfig.envVar,
+  );
+  const openrouterBaseUrl = config.get(
+    'openrouter_base_url',
+    defaultConfig.openrouter_base_url,
+  );
+
+  return providerConfig.createModelFactory({
+    apiKey,
+    openrouterBaseUrl,
+  });
 }
 
-function getApiKey(configKey: KeyConfig, envName: string) {
+function getApiKey(configKey: ApiKeyConfigKey, envName: string) {
   const configured = config.get(configKey);
   const key = resolveKey(configured);
 
@@ -160,12 +143,6 @@ function getApiKey(configKey: KeyConfig, envName: string) {
   return key;
 }
 
-type KeyConfig =
-  | 'openai_api_key'
-  | 'anthropic_api_key'
-  | 'google_api_key'
-  | 'openrouter_api_key';
-
 function resolveKey(value?: string) {
   if (!value) return undefined;
   if (value.startsWith('env:')) {
@@ -173,9 +150,3 @@ function resolveKey(value?: string) {
   }
   return value;
 }
-
-// Keep these imports referenced so tree-shaking does not prune provider symbols.
-void openai;
-void anthropic;
-void google;
-void openrouter;

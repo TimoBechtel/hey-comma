@@ -1,13 +1,8 @@
 import enquirer from 'enquirer';
-import { config, type ProviderName } from './config.js';
+import { config } from './config.js';
+import { providerNames, providers, type ProviderName } from './providers.js';
 
 const { prompt } = enquirer;
-const providerChoices = [
-  'openai',
-  'anthropic',
-  'google',
-  'openrouter',
-] as const;
 
 export async function setup() {
   if (isConfigured()) {
@@ -22,7 +17,7 @@ export async function setup() {
     type: 'select',
     message: 'Select your default provider',
     name: 'provider',
-    choices: [...providerChoices],
+    choices: [...providerNames],
     required: true,
     stdin: process.stdin,
   });
@@ -30,13 +25,13 @@ export async function setup() {
   const modelAnswer = await prompt<{ model: string }>({
     type: 'input',
     message: 'Default model name',
-    initial: getInitialModel(providerAnswer.provider),
+    initial: providers[providerAnswer.provider].defaultModel,
     name: 'model',
     required: true,
     stdin: process.stdin,
   });
 
-  const apiKeyField = getApiKeyField(providerAnswer.provider);
+  const apiKeyField = providers[providerAnswer.provider].apiKeyConfigKey;
   const keyAnswer = await prompt<{ token: string }>({
     type: 'password',
     message: `API key for ${providerAnswer.provider} (or env:YOUR_ENV_VAR)`,
@@ -70,20 +65,6 @@ export function isConfigured() {
     return false;
   }
 
-  const keyField = getApiKeyField(defaultProvider);
+  const keyField = providers[defaultProvider].apiKeyConfigKey;
   return !!config.get(keyField);
-}
-
-function getApiKeyField(provider: ProviderName) {
-  if (provider === 'openai') return 'openai_api_key';
-  if (provider === 'anthropic') return 'anthropic_api_key';
-  if (provider === 'google') return 'google_api_key';
-  return 'openrouter_api_key';
-}
-
-function getInitialModel(provider: ProviderName) {
-  if (provider === 'openai') return 'gpt-4o-mini';
-  if (provider === 'anthropic') return 'claude-sonnet-4-5';
-  if (provider === 'google') return 'gemini-2.5-flash';
-  return 'openai/gpt-4o-mini';
 }

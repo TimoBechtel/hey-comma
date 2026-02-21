@@ -2,21 +2,23 @@ import { userInfo } from 'node:os';
 import path from 'node:path';
 import { parse, stringify } from '@iarna/toml';
 import Conf from 'conf';
+import {
+  providers,
+  providerNames,
+  type ApiKeyConfigKey,
+  type ProviderName,
+} from './providers.js';
 
 const { homedir } = userInfo();
 
 export const configPath = path.join(homedir, '.hey-comma');
 
-export type ProviderName = 'openai' | 'anthropic' | 'google' | 'openrouter';
+type ProviderApiKeyConfig = Partial<Record<ApiKeyConfigKey, string>>;
 
-type Config = {
+type Config = ProviderApiKeyConfig & {
   default_provider?: ProviderName;
   default_model?: string;
   model_aliases?: Record<string, string>;
-  openai_api_key?: string;
-  anthropic_api_key?: string;
-  google_api_key?: string;
-  openrouter_api_key?: string;
   openrouter_base_url?: string;
   temperature?: number;
   max_tokens?: number;
@@ -29,7 +31,7 @@ type Config = {
 
 export const defaultConfig = {
   default_provider: 'openai',
-  default_model: 'gpt-4o-mini',
+  default_model: providers.openai.defaultModel,
   model_aliases: {},
   openrouter_base_url: 'https://openrouter.ai/api/v1',
   temperature: 0.2,
@@ -38,6 +40,16 @@ export const defaultConfig = {
     max_entries: 50,
   },
 } satisfies Config;
+
+const providerApiKeySchema = Object.fromEntries(
+  providerNames.map((providerName) => [
+    providers[providerName].apiKeyConfigKey,
+    {
+      type: 'string',
+      format: 'password',
+    },
+  ]),
+);
 
 export const config = new Conf<Config>({
   configName: 'config',
@@ -50,7 +62,7 @@ export const config = new Conf<Config>({
   schema: {
     default_provider: {
       type: 'string',
-      enum: ['openai', 'anthropic', 'google', 'openrouter'],
+      enum: providerNames,
     },
     default_model: {
       type: 'string',
@@ -61,22 +73,7 @@ export const config = new Conf<Config>({
         type: 'string',
       },
     },
-    openai_api_key: {
-      type: 'string',
-      format: 'password',
-    },
-    anthropic_api_key: {
-      type: 'string',
-      format: 'password',
-    },
-    google_api_key: {
-      type: 'string',
-      format: 'password',
-    },
-    openrouter_api_key: {
-      type: 'string',
-      format: 'password',
-    },
+    ...providerApiKeySchema,
     openrouter_base_url: {
       type: 'string',
     },
