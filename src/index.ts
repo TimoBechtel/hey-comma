@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { program } from 'commander';
+import packageJson from '../package.json';
 import cacheCmd from './commands/cache.js';
 import configCmd from './commands/config.js';
 import explainCmd from './commands/explain.js';
@@ -7,8 +8,8 @@ import runCmd from './commands/run.js';
 import setupCmd from './commands/setup.js';
 import { context } from './context.js';
 
-const VERSION = process.env.VERSION ?? '0.0.0';
-const DESCRIPTION = process.env.DESCRIPTION ?? 'No description';
+const VERSION = packageJson.version;
+const DESCRIPTION = packageJson.description;
 
 function initProgram({
   defaultCommand,
@@ -45,7 +46,7 @@ async function run() {
       process.stdin.on('readable', () => {
         const chunk = process.stdin.read() as string | null;
         if (chunk !== null) {
-          context.stdin += chunk;
+          context.stdin = `${context.stdin ?? ''}${chunk}`;
         }
       });
       process.stdin.on('end', async () => {

@@ -2,14 +2,25 @@ import { userInfo } from 'node:os';
 import path from 'node:path';
 import { parse, stringify } from '@iarna/toml';
 import Conf from 'conf';
+import {
+  providerNames,
+  providers,
+  type ApiKeyConfigKey,
+  type ProviderName,
+} from './providers.js';
 
 const { homedir } = userInfo();
 
 export const configPath = path.join(homedir, '.hey-comma');
 
-type Config = {
-  openai_api_key?: string;
-  openai_model?: string;
+type ProviderApiKeyConfig = Partial<Record<ApiKeyConfigKey, string>>;
+
+type Config = ProviderApiKeyConfig & {
+  default_provider?: ProviderName;
+  default_model?: string;
+  model_aliases?: Record<string, string>;
+  openrouter_base_url?: string;
+  disable_thinking?: boolean;
   temperature?: number;
   max_tokens?: number;
   run_prompt?: string;
@@ -20,13 +31,27 @@ type Config = {
 };
 
 export const defaultConfig = {
-  openai_model: 'gpt-3.5-turbo',
+  default_provider: 'openai',
+  default_model: providers.openai.defaultModel,
+  model_aliases: {},
+  openrouter_base_url: 'https://openrouter.ai/api/v1',
+  disable_thinking: false,
   temperature: 0.2,
-  max_tokens: 256,
+  max_tokens: 1200,
   cache: {
     max_entries: 50,
   },
 } satisfies Config;
+
+const providerApiKeySchema = Object.fromEntries(
+  providerNames.map((providerName) => [
+    providers[providerName].apiKeyConfigKey,
+    {
+      type: 'string',
+      format: 'password',
+    },
+  ]),
+);
 
 export const config = new Conf<Config>({
   configName: 'config',
@@ -37,12 +62,25 @@ export const config = new Conf<Config>({
   serialize: stringify,
   projectSuffix: '',
   schema: {
-    openai_api_key: {
+    default_provider: {
       type: 'string',
-      format: 'password',
+      enum: providerNames,
     },
-    openai_model: {
+    default_model: {
       type: 'string',
+    },
+    model_aliases: {
+      type: 'object',
+      additionalProperties: {
+        type: 'string',
+      },
+    },
+    ...providerApiKeySchema,
+    openrouter_base_url: {
+      type: 'string',
+    },
+    disable_thinking: {
+      type: 'boolean',
     },
     temperature: {
       type: 'number',

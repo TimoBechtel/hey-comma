@@ -5,12 +5,32 @@ const program = new Command();
 
 const configCmd = program.command('config').description('configure hey,');
 
+function parseConfigValue(value: string) {
+  if (value === 'true') {
+    return true;
+  }
+
+  if (value === 'false') {
+    return false;
+  }
+
+  if (value.trim() !== '') {
+    const number = Number(value);
+
+    if (!Number.isNaN(number)) {
+      return number;
+    }
+  }
+
+  return value;
+}
+
 configCmd
   .command('set <key> <value>')
   .description('set a configuration value')
   .action((key: string, value: string) => {
     try {
-      config.set(key, value);
+      config.set(key, parseConfigValue(value));
     } catch (error) {
       console.error((error as Error).message);
     }
@@ -21,9 +41,9 @@ configCmd
   .description('get a configuration value')
   .action((key?: string) => {
     if (key) {
-      console.info(config.get(key));
+      console.info(JSON.stringify(config.get(key), null, 2));
     } else {
-      console.info(config.store);
+      console.info(JSON.stringify(config.store, null, 2));
     }
   });
 

@@ -6,10 +6,7 @@ const result = await Bun.build({
   outdir: './dist',
   format: 'esm',
   external: Object.keys(packageJson.dependencies),
-  define: {
-    'process.env.VERSION': JSON.stringify(packageJson.version),
-    'process.env.DESCRIPTION': packageJson.description,
-  },
+  minify: true,
 });
 
 if (!result.success) {

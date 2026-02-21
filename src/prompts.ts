@@ -1,6 +1,6 @@
 import { userInfo } from 'node:os';
 
-const shell = userInfo().shell;
+const shell = userInfo().shell ?? 'sh';
 
 export const prompts = {
   terminalCommand: ({

@@ -1,8 +1,8 @@
 import { Command } from 'commander';
 import ora from 'ora';
+import { askAi } from '../ai.js';
 import { config } from '../config.js';
 import { context } from '../context.js';
-import { askAi } from '../openai.js';
 import { prompts } from '../prompts.js';
 import { isConfigured } from '../setup.js';
 
@@ -15,7 +15,7 @@ const explainCmd = program
     'pipe data to "hey," to ask questions about it. e.g. `cat script.sh | hey, explain`.',
   )
   .argument('[question...]', 'optional question')
-  .option('--gpt4', 'use the GPT-4 model')
+  .option('--model <model>', 'model selector or alias')
   .hook('preAction', (command) => {
     if (!isConfigured()) {
       command.error(
@@ -23,11 +23,15 @@ const explainCmd = program
       );
     }
   })
-  .action(async (strings?: string[], options?: { gpt4?: boolean }) => {
+  .action(async (strings?: string[], options?: { model?: string }) => {
     const question =
       !strings || strings.length === 0 ? 'What is this?' : strings.join(' ');
 
-    const spinner = ora('Thinking').start();
+    const spinner = ora({
+      text: 'Thinking',
+      discardStdin: false,
+      hideCursor: false,
+    }).start();
 
     const input = context.stdin;
 
@@ -50,7 +54,7 @@ const explainCmd = program
     const temperature = config.get('temperature');
 
     const { success, error, answer } = await askAi(prompt, {
-      overrideModel: options?.gpt4 ? 'gpt-4' : undefined,
+      overrideModel: options?.model,
       maxTokens,
       temperature,
     });

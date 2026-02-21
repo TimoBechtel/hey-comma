@@ -3,10 +3,10 @@ import { createInterface } from 'node:readline/promises';
 import { Command } from 'commander';
 import enquirer from 'enquirer';
 import ora from 'ora';
+import { askAi } from '../ai.js';
 import { cache } from '../cache.js';
 import { config } from '../config.js';
 import { context } from '../context.js';
-import { askAi } from '../openai.js';
 import { prompts } from '../prompts.js';
 import { isConfigured } from '../setup.js';
 
@@ -16,7 +16,7 @@ const runCmd = program
   .alias('run:')
   .description('create a shell command from an instruction (default)')
   .argument('[instruction...]', 'instruction')
-  .option('--gpt4', 'use the GPT-4 model')
+  .option('--model <model>', 'model selector or alias')
   .hook('preAction', (command) => {
     if (!isConfigured()) {
       command.error(
@@ -24,7 +24,7 @@ const runCmd = program
       );
     }
   })
-  .action(async (strings?: string[], options?: { gpt4?: boolean }) => {
+  .action(async (strings?: string[], options?: { model?: string }) => {
     if (context.stdin) {
       runCmd.error(
         'hey, does not support piping data to "hey, run". Please use "hey, run" without piping data. Or use "hey, explain"',
@@ -44,7 +44,11 @@ const runCmd = program
       instruction = strings.join(' ');
     }
 
-    const spinner = ora('Thinking');
+    const spinner = ora({
+      text: 'Thinking',
+      discardStdin: false,
+      hideCursor: false,
+    });
 
     async function getCommand() {
       spinner.start();
@@ -72,7 +76,7 @@ const runCmd = program
           error,
           answer: _command,
         } = await askAi(prompt, {
-          overrideModel: options?.gpt4 ? 'gpt-4' : undefined,
+          overrideModel: options?.model,
           maxTokens,
           temperature,
         });
@@ -151,19 +155,19 @@ const runCmd = program
         const _command = command;
         exec(_command, (error, stdout, stderr) => {
           if (error) {
-            runCmd.error(`${error.message}`);
+            runCmd.error(error.message);
             cache.delete(instruction);
             return;
           }
           if (stderr) {
-            runCmd.error(`${stderr}`);
+            runCmd.error(stderr);
             cache.delete(instruction);
             return;
           }
 
           cache.set(instruction, _command);
 
-          console.info(`${stdout}`);
+          console.info(stdout);
         });
       }
     }
