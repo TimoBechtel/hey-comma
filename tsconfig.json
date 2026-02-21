@@ -7,6 +7,7 @@
     "moduleResolution": "bundler",
     "noEmit": true,
     "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
     "moduleDetection": "force",
     "outDir": "dist",
     "rootDir": ".",
@@ -15,6 +16,6 @@
     "noFallthroughCasesInSwitch": true,
     "types": ["bun-types"]
   },
-  "include": ["src", "build.ts"],
+  "include": ["src"],
   "exclude": ["node_modules"]
 }

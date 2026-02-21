@@ -7,11 +7,11 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "hey,": "./dist/index.js",
-    "hey": "./dist/index.js"
+    "hey,": "./dist/hey",
+    "hey": "./dist/hey"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=22"
   },
   "keywords": [
     "gpt",
@@ -26,7 +26,12 @@
   "scripts": {
     "prepare": "is-ci || husky install",
     "prepack": "bun run build",
-    "build": "bun build.ts"
+    "build": "bun build ./src/index.ts --compile --outfile ./dist/hey --minify",
+    "build:linux": "bun build ./src/index.ts --compile --target=bun-linux-x64 --outfile ./dist/hey-linux-x64 --minify",
+    "build:windows": "bun build ./src/index.ts --compile --target=bun-windows-x64 --outfile ./dist/hey-windows-x64.exe --minify",
+    "build:macos": "bun build ./src/index.ts --compile --target=bun-darwin-arm64 --outfile ./dist/hey-darwin-arm64 --minify",
+    "build:macos-intel": "bun build ./src/index.ts --compile --target=bun-darwin-x64 --outfile ./dist/hey-darwin-x64 --minify",
+    "build:all": "bun run build && bun run build:linux && bun run build:windows && bun run build:macos && bun run build:macos-intel"
   },
   "config": {
     "commitizen": {
@@ -48,7 +53,7 @@
     "@types/node": "^25.3.0",
     "bun-types": "^1.3.9",
     "cz-conventional-changelog": "^3.3.0",
-    "eslint": "^10.0.1",
+    "eslint": "^9.39.1",
     "husky": "^9.1.7",
     "is-ci": "^4.1.0",
     "lint-staged": "^16.2.7",

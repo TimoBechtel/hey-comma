@@ -52,14 +52,27 @@ hey, create a tarball with all files in the current directory, except javascript
 
 ## Install
 
-`hey,` requires Node.js v16 or higher.
+### Binary install (recommended)
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/TimoBechtel/hey-comma/main/install.sh | bash
+```
+
+Supported binaries:
+
+- macOS arm64
+- macOS x64
+- Linux x64
+- Windows x64
+
+### npm install
 
 ```sh
 npm i -g hey-comma
 ```
 
 > [!NOTE]
-> pnpm does not like the comma, so only the `hey` alias is available. You can add the alias manually if you want to: `alias hey,=hey`
+> `pnpm` does not like the comma, so only the `hey` alias is available. You can add it manually: `alias hey,=hey`
 
 ## Setup
 
@@ -213,7 +226,7 @@ cat script.sh | hey, explain
 
 ### Development
 
-This project uses [bun](https://bun.sh/) as package manager & bundler.
+This project uses [bun](https://bun.sh/) as package manager and compiler.
 
 If you don't have bun installed, run:
 
@@ -231,6 +244,12 @@ bun install
 
 ```sh
 bun run build
+```
+
+To build all release binaries:
+
+```sh
+bun run build:all
 ```
 
 ### Commit messages
