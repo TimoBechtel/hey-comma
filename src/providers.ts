@@ -2,12 +2,13 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { createSpawnAgent } from 'spawn-agent';
 
 // disable warnings, like temperature not supported by some models
 (globalThis as { AI_SDK_LOG_WARNINGS?: boolean }).AI_SDK_LOG_WARNINGS = false;
 
 type ProviderFactoryOptions = {
-  apiKey: string;
+  apiKey?: string;
   openrouterBaseUrl?: string;
 };
 
@@ -16,7 +17,7 @@ type ProviderOptionsInput = {
 };
 
 type ProviderDefinition = {
-  apiKeyConfigKey: `${string}_api_key`;
+  apiKeyConfigKey?: `${string}_api_key`;
   defaultModel: string;
   createModelFactory: (
     options: ProviderFactoryOptions,
@@ -61,6 +62,12 @@ export const providers = {
       disableThinking
         ? { openrouter: { reasoning: { max_tokens: 0 } } }
         : undefined,
+  },
+  'spawn-agent': {
+    apiKeyConfigKey: undefined,
+    defaultModel: 'codex',
+    createModelFactory: () => createSpawnAgent(),
+    getProviderOptions: () => undefined,
   },
 } as const satisfies Record<string, ProviderDefinition>;
 

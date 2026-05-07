@@ -69,6 +69,7 @@ Supported binaries:
 ### npm install
 
 Requires Node.js **22 or later** when installed via npm.
+
 ```sh
 npm i -g hey-comma
 ```
@@ -80,7 +81,7 @@ npm i -g hey-comma
 
 ### AI provider setup
 
-`hey,` works with `openai`, `anthropic`, `google`, and `openrouter`.
+`hey,` works with `openai`, `anthropic`, `google`, `openrouter`, and `spawn-agent`.
 
 Then, run:
 
@@ -160,7 +161,7 @@ For example, `~/.hey-comma/config.toml`
 
 Available options:
 
-- `default_provider`: default provider (`openai`, `anthropic`, `google`, `openrouter`)
+- `default_provider`: default provider (`openai`, `anthropic`, `google`, `openrouter`, `spawn-agent`)
 - `default_model`: default model name for your default provider
 - `model_aliases`: alias map for model selectors (e.g. `smart = "anthropic/claude-sonnet-4-5"`)
 - `openai_api_key`: OpenAI API key (or `env:OPENAI_API_KEY`)
@@ -190,6 +191,8 @@ Accepted forms:
 - alias from `model_aliases`
 - bare model name (resolved with `default_provider`)
 
+When using `spawn-agent`, the `model` part is the local agent id, for example `spawn-agent/codex` or `spawn-agent/claude`.
+
 Example aliases:
 
 ```toml
@@ -197,7 +200,24 @@ Example aliases:
 fast = "openai/gpt-4o-mini"
 smart = "anthropic/claude-sonnet-4-5"
 cheap = "google/gemini-2.5-flash"
+local = "spawn-agent/codex"
 ```
+
+### spawn-agent
+
+`spawn-agent` lets `hey,` use a locally installed coding agent instead of a hosted API model.
+
+Example:
+
+```sh
+hey, run --model spawn-agent/codex "list the largest files in this directory"
+cat script.sh | hey, explain --model spawn-agent/claude "is this safe to run?"
+```
+
+Supported agent ids depend on `spawn-agent`, and include `claude`, `codex`, `cursor`, `copilot`, `gemini`, `opencode`, `droid`, and `pi`.
+
+> [!IMPORTANT]
+> `spawn-agent` does not use API keys configured through `hey,`. You need the corresponding local agent CLI installed and authenticated on your machine.
 
 ### Custom prompts
 

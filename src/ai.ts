@@ -131,7 +131,9 @@ function resolveModelSelector(rawModel?: string): {
 
 function resolveModelFactory(provider: ProviderName) {
   const providerConfig = providers[provider];
-  const apiKey = getApiKey(providerConfig.apiKeyConfigKey);
+  const apiKey = providerConfig.apiKeyConfigKey
+    ? getApiKey(providerConfig.apiKeyConfigKey)
+    : undefined;
   const openrouterBaseUrl = config.get(
     'openrouter_base_url',
     defaultConfig.openrouter_base_url,
@@ -144,7 +146,7 @@ function resolveModelFactory(provider: ProviderName) {
 }
 
 function shouldFallbackToOpenRouter(provider: ProviderName) {
-  if (provider === 'openrouter') {
+  if (provider === 'openrouter' || provider === 'spawn-agent') {
     return false;
   }
 
@@ -166,11 +168,19 @@ function shouldFallbackToOpenRouter(provider: ProviderName) {
   return hasApiKey(providers.openrouter.apiKeyConfigKey);
 }
 
-function hasApiKey(configKey: ApiKeyConfigKey) {
+function hasApiKey(configKey?: ApiKeyConfigKey) {
+  if (!configKey) {
+    return false;
+  }
+
   return Boolean(resolveKey(config.get(configKey)));
 }
 
-function getApiKey(configKey: ApiKeyConfigKey) {
+function getApiKey(configKey?: ApiKeyConfigKey) {
+  if (!configKey) {
+    return undefined;
+  }
+
   const configured = config.get(configKey);
   const key = resolveKey(configured);
 

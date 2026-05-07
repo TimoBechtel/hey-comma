@@ -31,18 +31,22 @@ export async function setup() {
     stdin: process.stdin,
   });
 
-  const apiKeyField = providers[providerAnswer.provider].apiKeyConfigKey;
-  const keyAnswer = await prompt<{ token: string }>({
-    type: 'password',
-    message: `API key for ${providerAnswer.provider} (or env:YOUR_ENV_VAR)`,
-    name: 'token',
-    required: true,
-    stdin: process.stdin,
-  });
-
   config.set('default_provider', providerAnswer.provider);
   config.set('default_model', modelAnswer.model);
-  config.set(apiKeyField, keyAnswer.token);
+
+  const apiKeyField = providers[providerAnswer.provider].apiKeyConfigKey;
+
+  if (apiKeyField) {
+    const keyAnswer = await prompt<{ token: string }>({
+      type: 'password',
+      message: `API key for ${providerAnswer.provider} (or env:YOUR_ENV_VAR)`,
+      name: 'token',
+      required: true,
+      stdin: process.stdin,
+    });
+
+    config.set(apiKeyField, keyAnswer.token);
+  }
 
   if (providerAnswer.provider === 'openrouter') {
     const baseUrl = await prompt<{ baseUrl: string }>({
@@ -66,5 +70,10 @@ export function isConfigured() {
   }
 
   const keyField = providers[defaultProvider].apiKeyConfigKey;
+
+  if (!keyField) {
+    return true;
+  }
+
   return !!config.get(keyField);
 }

@@ -44,13 +44,23 @@ export const defaultConfig = {
 } satisfies Config;
 
 const providerApiKeySchema = Object.fromEntries(
-  providerNames.map((providerName) => [
-    providers[providerName].apiKeyConfigKey,
-    {
-      type: 'string',
-      format: 'password',
-    },
-  ]),
+  providerNames.flatMap((providerName) => {
+    const apiKeyConfigKey = providers[providerName].apiKeyConfigKey;
+
+    if (!apiKeyConfigKey) {
+      return [];
+    }
+
+    return [
+      [
+        apiKeyConfigKey,
+        {
+          type: 'string',
+          format: 'password',
+        },
+      ],
+    ];
+  }),
 );
 
 export const config = new Conf<Config>({
