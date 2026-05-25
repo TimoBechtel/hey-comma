@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/TimoBechtel/hey-comma/compare/v1.3.0...v1.4.0) (2026-05-25)
+
+
+### Features
+
+* add refine option for command regeneration ([#2](https://github.com/TimoBechtel/hey-comma/issues/2)) ([4cb276a](https://github.com/TimoBechtel/hey-comma/commit/4cb276a9226ac6a0d7cd7434c5e73d1220f5aadf))
+
 # [1.3.0](https://github.com/TimoBechtel/hey-comma/compare/v1.2.0...v1.3.0) (2026-02-21)
 
 
