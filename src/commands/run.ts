@@ -52,38 +52,19 @@ const runCmd = program
 
     const baseInstruction = instruction;
 
-    function buildRefineInstruction({
-      previousCommand,
-      refineText,
-    }: {
-      previousCommand: string;
-      refineText: string;
-    }) {
-      return [
-        'Original instruction:',
-        baseInstruction,
-        'Previous command:',
-        previousCommand,
-        'Refine request:',
-        refineText,
-      ].join('\n');
-    }
-
     async function generateCommand({
-      previousCommand,
-      refineText,
+      refine,
     }: {
-      previousCommand?: string;
-      refineText?: string;
+      refine?: {
+        previousCommand: string;
+        refineText: string;
+      };
     } = {}): Promise<string | null> {
       spinner.start();
 
       let command: string | null = null;
 
-      const isRefine =
-        typeof previousCommand === 'string' && typeof refineText === 'string';
-
-      if (!isRefine) {
+      if (!refine) {
         command = cache.get(baseInstruction);
         if (command) {
           spinner.stop();
@@ -93,11 +74,15 @@ const runCmd = program
 
       if (!command) {
         const customPrompt = config.get('run_prompt');
-        const promptInstruction = isRefine
-          ? buildRefineInstruction({
-              previousCommand,
-              refineText,
-            })
+        const promptInstruction = refine
+          ? [
+              'Original instruction:',
+              baseInstruction,
+              'Previous command:',
+              refine.previousCommand,
+              'Refine request:',
+              refine.refineText,
+            ].join('\n')
           : baseInstruction;
         const prompt = prompts.terminalCommand({
           instruction: promptInstruction,
@@ -201,8 +186,10 @@ const runCmd = program
         }
 
         const refinedCommand = await generateCommand({
-          previousCommand: command,
-          refineText,
+          refine: {
+            previousCommand: command,
+            refineText,
+          },
         });
         if (refinedCommand === null) {
           return;
@@ -217,10 +204,8 @@ const runCmd = program
         return;
       }
 
-      // execute command
-      // make type checker happy
-      const _command = command;
-      exec(_command, (error, stdout, stderr) => {
+      const commandToRun = command;
+      exec(commandToRun, (error, stdout, stderr) => {
         if (error) {
           runCmd.error(error.message);
           cache.delete(baseInstruction);
@@ -232,7 +217,7 @@ const runCmd = program
           return;
         }
 
-        cache.set(baseInstruction, _command);
+        cache.set(baseInstruction, commandToRun);
 
         console.info(stdout);
       });
