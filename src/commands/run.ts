@@ -50,21 +50,42 @@ const runCmd = program
       hideCursor: false,
     });
 
-    async function getCommand() {
+    const baseInstruction = instruction;
+
+    async function generateCommand({
+      refine,
+    }: {
+      refine?: {
+        previousCommand: string;
+        refineText: string;
+      };
+    } = {}): Promise<string | null> {
       spinner.start();
 
       let command: string | null = null;
 
-      command = cache.get(instruction);
-      if (command) {
-        spinner.stop();
-        console.info('Using command from cache:');
+      if (!refine) {
+        command = cache.get(baseInstruction);
+        if (command) {
+          spinner.stop();
+          console.info('Using command from cache:');
+        }
       }
 
       if (!command) {
         const customPrompt = config.get('run_prompt');
+        const promptInstruction = refine
+          ? [
+              'Original instruction:',
+              baseInstruction,
+              'Previous command:',
+              refine.previousCommand,
+              'Refine request:',
+              refine.refineText,
+            ].join('\n')
+          : baseInstruction;
         const prompt = prompts.terminalCommand({
-          instruction,
+          instruction: promptInstruction,
           customTemplate: customPrompt,
         });
 
@@ -83,38 +104,44 @@ const runCmd = program
 
         if (!success) {
           runCmd.error(error);
-          return;
+          return null;
         }
 
         command = _command.trim().replaceAll(/(^\n)|(\n$)/g, '');
 
-        if (!command) {
+        if (command.length === 0) {
           spinner.stop();
           runCmd.error('No command generated.');
-          return;
+          return null;
         }
       }
 
       spinner.stop();
 
+      return command;
+    }
+
+    let command = await generateCommand();
+    if (command === null) {
+      return;
+    }
+
+    for (;;) {
       console.info(command);
 
-      let option: 'yes' | 'cancel' | 'retry' | 'edit';
+      let option: 'run' | 'cancel' | 'refine' | 'edit';
 
       try {
         const res = await enquirer.prompt<{
-          option: 'yes' | 'cancel' | 'retry' | 'edit';
+          option: 'run' | 'cancel' | 'refine' | 'edit';
         }>({
           type: 'autocomplete',
           name: 'option',
           message: 'Execute command?',
           choices: [
-            { name: 'yes' },
-            {
-              name: 'retry',
-              hint: '- create a new command with the same instruction',
-            },
+            { name: 'run' },
             { name: 'edit', hint: '- edit command before executing' },
+            { name: 'refine', hint: '- refine and regenerate command' },
             { name: 'cancel' },
           ],
         });
@@ -140,39 +167,62 @@ const runCmd = program
           return;
         }
 
-        option = 'yes';
+        option = 'run';
       }
 
-      if (option === 'retry') {
-        cache.delete(instruction);
-        await getCommand();
+      if (option === 'refine') {
+        let refineText: string;
+        try {
+          const res = await enquirer.prompt<{ refine: string }>({
+            type: 'input',
+            name: 'refine',
+            message: 'Refine: ',
+            required: true,
+          });
+          refineText = res.refine;
+        } catch {
+          runCmd.error('Cancelled');
+          return;
+        }
+
+        const refinedCommand = await generateCommand({
+          refine: {
+            previousCommand: command,
+            refineText,
+          },
+        });
+        if (refinedCommand === null) {
+          return;
+        }
+
+        command = refinedCommand;
+        continue;
+      }
+
+      if (option === 'cancel') {
+        runCmd.error('Cancelled');
         return;
       }
 
-      // execute command
-      if (option === 'yes') {
-        // make type checker happy
-        const _command = command;
-        exec(_command, (error, stdout, stderr) => {
-          if (error) {
-            runCmd.error(error.message);
-            cache.delete(instruction);
-            return;
-          }
-          if (stderr) {
-            runCmd.error(stderr);
-            cache.delete(instruction);
-            return;
-          }
+      const commandToRun = command;
+      exec(commandToRun, (error, stdout, stderr) => {
+        if (error) {
+          runCmd.error(error.message);
+          cache.delete(baseInstruction);
+          return;
+        }
+        if (stderr) {
+          runCmd.error(stderr);
+          cache.delete(baseInstruction);
+          return;
+        }
 
-          cache.set(instruction, _command);
+        cache.set(baseInstruction, commandToRun);
 
-          console.info(stdout);
-        });
-      }
+        console.info(stdout);
+      });
+      return;
     }
-
-    await getCommand();
   });
 
 runCmd.addHelpText(
