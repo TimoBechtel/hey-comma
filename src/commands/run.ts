@@ -114,7 +114,7 @@ const runCmd = program
           return null;
         }
 
-        command = _command.trim().replaceAll(/(^\n)|(\n$)/g, '');
+        command = extractCommand(_command);
 
         if (command.length === 0) {
           spinner.stop();
@@ -243,3 +243,9 @@ Examples:
 );
 
 export default runCmd;
+
+function extractCommand(answer: string) {
+  const taggedCommand = /<command>\s*([\s\S]*?)\s*<\/command>/.exec(answer);
+
+  return (taggedCommand?.[1] ?? answer).trim().replaceAll(/(^\n)|(\n$)/g, '');
+}
