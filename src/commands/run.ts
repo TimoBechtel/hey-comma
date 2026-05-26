@@ -9,6 +9,7 @@ import { config } from '../config.js';
 import { context } from '../context.js';
 import { prompts } from '../prompts.js';
 import { isConfigured } from '../setup.js';
+import { collectCodexConfig, type AiCommandOptions } from './options.js';
 
 const program = new Command();
 const runCmd = program
@@ -17,6 +18,11 @@ const runCmd = program
   .description('create a shell command from an instruction (default)')
   .argument('[instruction...]', 'instruction')
   .option('--model <model>', 'model selector or alias')
+  .option(
+    '--codex-config <key=value>',
+    'Codex config override for spawn-agent/codex',
+    collectCodexConfig,
+  )
   .hook('preAction', (command) => {
     if (!isConfigured()) {
       command.error(
@@ -24,7 +30,7 @@ const runCmd = program
       );
     }
   })
-  .action(async (strings?: string[], options?: { model?: string }) => {
+  .action(async (strings?: string[], options?: AiCommandOptions) => {
     if (context.stdin) {
       runCmd.error(
         'hey, does not support piping data to "hey, run". Please use "hey, run" without piping data. Or use "hey, explain"',
@@ -97,6 +103,7 @@ const runCmd = program
           error,
           answer: _command,
         } = await askAi(prompt, {
+          codexConfig: options?.codexConfig,
           overrideModel: options?.model,
           maxTokens,
           temperature,

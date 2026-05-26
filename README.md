@@ -212,9 +212,37 @@ Example:
 ```sh
 hey, run --model spawn-agent/codex "list the largest files in this directory"
 cat script.sh | hey, explain --model spawn-agent/claude "is this safe to run?"
+hey, run --model spawn-agent/codex --codex-config model=gpt-5.4-mini "summarize this repo"
 ```
 
 Supported agent ids depend on `spawn-agent`, and include `claude`, `codex`, `cursor`, `copilot`, `gemini`, `opencode`, `droid`, and `pi`.
+
+Codex config overrides are only used with `spawn-agent/codex`. They are passed to `codex-acp` as `-c key=value`.
+
+```toml
+[spawn_agent.codex.config]
+model = "gpt-5.4-mini"
+```
+
+Lean Codex config:
+
+```toml
+[spawn_agent.codex.config]
+model = "gpt-5.4-mini"
+model_reasoning_effort = "low"
+system_prompt = ""
+mcp_servers = {}
+features.fast_mode = true
+features.apps = false
+features.plugins = false
+features.browser_use = false
+features.in_app_browser = false
+features.multi_agent = false
+features.image_generation = false
+features.memories = false
+features.hooks = false
+features.shell_snapshot = false
+```
 
 > [!IMPORTANT]
 > `spawn-agent` does not use API keys configured through `hey,`. You need the corresponding local agent CLI installed and authenticated on your machine.

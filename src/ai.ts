@@ -9,6 +9,7 @@ import {
 } from './providers.js';
 
 type AskAiOptions = {
+  codexConfig?: string[];
   maxTokens?: number;
   overrideModel?: string;
   temperature?: number;
@@ -17,6 +18,7 @@ type AskAiOptions = {
 export async function askAi(
   prompt: string,
   {
+    codexConfig: codexConfigOverrides = [],
     maxTokens = defaultConfig.max_tokens,
     overrideModel,
     temperature = defaultConfig.temperature,
@@ -37,13 +39,18 @@ export async function askAi(
     const resolved = resolveModelSelector(overrideModel);
     let provider = resolved.provider;
     let model = resolved.model;
+    const codexConfig = resolveCodexConfig({
+      overrides: codexConfigOverrides,
+      provider,
+      model,
+    });
 
     if (shouldFallbackToOpenRouter(provider)) {
       model = `${provider}/${model}`;
       provider = 'openrouter';
     }
 
-    const modelFactory = resolveModelFactory(provider);
+    const modelFactory = resolveModelFactory(provider, { codexConfig });
     const llm = modelFactory(model);
     const disableThinking = config.get(
       'disable_thinking',
@@ -129,7 +136,10 @@ function resolveModelSelector(rawModel?: string): {
   return { provider: providerPrefix, model };
 }
 
-function resolveModelFactory(provider: ProviderName) {
+function resolveModelFactory(
+  provider: ProviderName,
+  { codexConfig }: { codexConfig: string[] },
+) {
   const providerConfig = providers[provider];
   const apiKey = providerConfig.apiKeyConfigKey
     ? getApiKey(providerConfig.apiKeyConfigKey)
@@ -141,8 +151,45 @@ function resolveModelFactory(provider: ProviderName) {
 
   return providerConfig.createModelFactory({
     apiKey,
+    codexConfig,
     openrouterBaseUrl,
   });
+}
+
+function resolveCodexConfig({
+  overrides,
+  provider,
+  model,
+}: {
+  overrides: string[];
+  provider: ProviderName;
+  model: string;
+}) {
+  const isCodex = provider === 'spawn-agent' && model === 'codex';
+
+  if (!isCodex) {
+    if (overrides.length) {
+      throw new Error(
+        '`--codex-config` can only be used with spawn-agent/codex.',
+      );
+    }
+
+    return [];
+  }
+
+  const spawnAgentConfig = config.get('spawn_agent', defaultConfig.spawn_agent);
+  const configured = spawnAgentConfig.codex?.config ?? {};
+
+  return [
+    ...Object.entries(configured).map(
+      ([key, value]) => `${key}=${formatCodexConfigValue(value)}`,
+    ),
+    ...overrides,
+  ];
+}
+
+function formatCodexConfigValue(value: boolean | number | string) {
+  return typeof value === 'string' ? JSON.stringify(value) : String(value);
 }
 
 function shouldFallbackToOpenRouter(provider: ProviderName) {

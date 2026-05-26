@@ -13,12 +13,19 @@ const { homedir } = userInfo();
 
 export const configPath = path.join(homedir, '.hey-comma');
 
-type ProviderApiKeyConfig = Partial<Record<ApiKeyConfigKey, string>>;
+type ProviderApiKeyConfig = Partial<
+  Record<Extract<ApiKeyConfigKey, string>, string>
+>;
 
 type Config = ProviderApiKeyConfig & {
   default_provider?: ProviderName;
   default_model?: string;
   model_aliases?: Record<string, string>;
+  spawn_agent?: {
+    codex?: {
+      config?: Record<string, boolean | number | string>;
+    };
+  };
   openrouter_base_url?: string;
   disable_thinking?: boolean;
   temperature?: number;
@@ -34,6 +41,11 @@ export const defaultConfig = {
   default_provider: 'openai',
   default_model: providers.openai.defaultModel,
   model_aliases: {},
+  spawn_agent: {
+    codex: {
+      config: {},
+    },
+  },
   openrouter_base_url: 'https://openrouter.ai/api/v1',
   disable_thinking: false,
   temperature: 0.2,
@@ -83,6 +95,26 @@ export const config = new Conf<Config>({
       type: 'object',
       additionalProperties: {
         type: 'string',
+      },
+    },
+    spawn_agent: {
+      type: 'object',
+      properties: {
+        codex: {
+          type: 'object',
+          properties: {
+            config: {
+              type: 'object',
+              additionalProperties: {
+                anyOf: [
+                  { type: 'boolean' },
+                  { type: 'number' },
+                  { type: 'string' },
+                ],
+              },
+            },
+          },
+        },
       },
     },
     ...providerApiKeySchema,

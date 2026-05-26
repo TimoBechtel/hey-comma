@@ -5,6 +5,7 @@ import { config } from '../config.js';
 import { context } from '../context.js';
 import { prompts } from '../prompts.js';
 import { isConfigured } from '../setup.js';
+import { collectCodexConfig, type AiCommandOptions } from './options.js';
 
 const program = new Command();
 
@@ -16,6 +17,11 @@ const explainCmd = program
   )
   .argument('[question...]', 'optional question')
   .option('--model <model>', 'model selector or alias')
+  .option(
+    '--codex-config <key=value>',
+    'Codex config override for spawn-agent/codex',
+    collectCodexConfig,
+  )
   .hook('preAction', (command) => {
     if (!isConfigured()) {
       command.error(
@@ -23,7 +29,7 @@ const explainCmd = program
       );
     }
   })
-  .action(async (strings?: string[], options?: { model?: string }) => {
+  .action(async (strings?: string[], options?: AiCommandOptions) => {
     const question =
       !strings || strings.length === 0 ? 'What is this?' : strings.join(' ');
 
@@ -54,6 +60,7 @@ const explainCmd = program
     const temperature = config.get('temperature');
 
     const { success, error, answer } = await askAi(prompt, {
+      codexConfig: options?.codexConfig,
       overrideModel: options?.model,
       maxTokens,
       temperature,

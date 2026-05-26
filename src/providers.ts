@@ -2,13 +2,19 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { createSpawnAgent } from 'spawn-agent';
+import {
+  adapters,
+  createSpawnAgent,
+  type AgentAdapter,
+  type SupportedAgentId,
+} from 'spawn-agent';
 
 // disable warnings, like temperature not supported by some models
 (globalThis as { AI_SDK_LOG_WARNINGS?: boolean }).AI_SDK_LOG_WARNINGS = false;
 
 type ProviderFactoryOptions = {
   apiKey?: string;
+  codexConfig?: string[];
   openrouterBaseUrl?: string;
 };
 
@@ -66,7 +72,23 @@ export const providers = {
   'spawn-agent': {
     apiKeyConfigKey: undefined,
     defaultModel: 'codex',
-    createModelFactory: () => createSpawnAgent(),
+    createModelFactory: ({ codexConfig }) => {
+      const spawnAgent = createSpawnAgent();
+
+      return (model: string) => {
+        if (codexConfig?.length) {
+          if (model !== 'codex') {
+            throw new Error(
+              'Codex config can only be used with spawn-agent/codex.',
+            );
+          }
+
+          return spawnAgent.fromAdapter(createCodexAdapter(codexConfig));
+        }
+
+        return spawnAgent(model as SupportedAgentId);
+      };
+    },
     getProviderOptions: () => undefined,
   },
 } as const satisfies Record<string, ProviderDefinition>;
@@ -79,4 +101,23 @@ export const providerNames = Object.keys(providers) as ProviderName[];
 
 export function isProviderName(value: string): value is ProviderName {
   return providerNames.includes(value as ProviderName);
+}
+
+function createCodexAdapter(codexConfig: string[]): AgentAdapter {
+  const codexAdapter = adapters.codex();
+
+  return {
+    ...codexAdapter,
+    async resolve() {
+      const resolved = await codexAdapter.resolve();
+
+      return {
+        ...resolved,
+        args: [
+          ...resolved.args,
+          ...codexConfig.flatMap((value) => ['-c', value]),
+        ],
+      };
+    },
+  };
 }
