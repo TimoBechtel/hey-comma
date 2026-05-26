@@ -43,7 +43,9 @@ export const defaultConfig = {
   model_aliases: {},
   spawn_agent: {
     codex: {
-      config: {},
+      config: {
+        sandbox_mode: 'read-only',
+      },
     },
   },
   openrouter_base_url: 'https://openrouter.ai/api/v1',

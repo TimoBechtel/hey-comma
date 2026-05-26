@@ -73,7 +73,7 @@ export const providers = {
     apiKeyConfigKey: undefined,
     defaultModel: 'codex',
     createModelFactory: ({ codexConfig }) => {
-      const spawnAgent = createSpawnAgent();
+      const spawnAgent = createSpawnAgent({ permission: 'auto-allow-once' });
 
       return (model: string) => {
         if (codexConfig?.length) {
