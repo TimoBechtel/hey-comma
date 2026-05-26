@@ -1,5 +1,5 @@
 import { generateText } from 'ai';
-import { config, defaultConfig } from './config.js';
+import { config, defaultConfig, type CodexConfigValue } from './config.js';
 import {
   isProviderName,
   providerNames,
@@ -188,8 +188,26 @@ function resolveCodexConfig({
   ];
 }
 
-function formatCodexConfigValue(value: boolean | number | string) {
-  return typeof value === 'string' ? JSON.stringify(value) : String(value);
+function formatCodexConfigValue(value: CodexConfigValue): string {
+  if (typeof value === 'string') {
+    return JSON.stringify(value);
+  }
+
+  if (typeof value !== 'object') {
+    return String(value);
+  }
+
+  const entries = Object.entries(value)
+    .map(([key, nestedValue]) => {
+      return `${formatTomlKey(key)} = ${formatCodexConfigValue(nestedValue)}`;
+    })
+    .join(', ');
+
+  return entries ? `{ ${entries} }` : '{}';
+}
+
+function formatTomlKey(key: string) {
+  return /^[A-Za-z0-9_-]+$/.test(key) ? key : JSON.stringify(key);
 }
 
 function shouldFallbackToOpenRouter(provider: ProviderName) {

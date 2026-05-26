@@ -17,13 +17,19 @@ type ProviderApiKeyConfig = Partial<
   Record<Extract<ApiKeyConfigKey, string>, string>
 >;
 
+export type CodexConfigValue =
+  | boolean
+  | number
+  | string
+  | { [key: string]: CodexConfigValue };
+
 type Config = ProviderApiKeyConfig & {
   default_provider?: ProviderName;
   default_model?: string;
   model_aliases?: Record<string, string>;
   spawn_agent?: {
     codex?: {
-      config?: Record<string, boolean | number | string>;
+      config?: Record<string, CodexConfigValue>;
     };
   };
   openrouter_base_url?: string;
@@ -77,6 +83,18 @@ const providerApiKeySchema = Object.fromEntries(
   }),
 );
 
+const codexConfigValueSchema = {
+  anyOf: [
+    { type: 'boolean' },
+    { type: 'number' },
+    { type: 'string' },
+    {
+      type: 'object',
+      additionalProperties: true,
+    },
+  ],
+};
+
 export const config = new Conf<Config>({
   configName: 'config',
   cwd: configPath,
@@ -107,13 +125,7 @@ export const config = new Conf<Config>({
           properties: {
             config: {
               type: 'object',
-              additionalProperties: {
-                anyOf: [
-                  { type: 'boolean' },
-                  { type: 'number' },
-                  { type: 'string' },
-                ],
-              },
+              additionalProperties: codexConfigValueSchema,
             },
           },
         },
