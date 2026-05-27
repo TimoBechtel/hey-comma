@@ -106,6 +106,9 @@ const runCmd = program
           codexConfig: options?.codexConfig,
           overrideModel: options?.model,
           maxTokens,
+          onProgress: (message) => {
+            spinner.text = message;
+          },
           temperature,
         });
 

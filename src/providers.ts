@@ -103,7 +103,7 @@ export function isProviderName(value: string): value is ProviderName {
   return providerNames.includes(value as ProviderName);
 }
 
-function createCodexAdapter(codexConfig: string[]): AgentAdapter {
+export function createCodexAdapter(codexConfig: string[]): AgentAdapter {
   const codexAdapter = adapters.codex();
 
   return {
