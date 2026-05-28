@@ -81,7 +81,7 @@ npm i -g hey-comma
 
 ### AI provider setup
 
-`hey,` works with `openai`, `anthropic`, `google`, `openrouter`, and local ACP clients.
+`hey,` works with `openai`, `anthropic`, `google`, `openrouter`, and installed ACP clients.
 
 Then, run:
 
@@ -205,7 +205,10 @@ local = "acp/codex"
 
 ### ACP clients
 
-ACP clients run as local subprocesses. Built-in clients are `codex`, `claude`, `copilot`, `cursor`, `gemini`, `opencode`, and `pi`. You can add any other ACP client in `config.toml`.
+ACP clients run as local subprocesses. Built-in configs are `codex`, `claude`, `copilot`, `cursor`, `gemini`, `opencode`, and `pi`.
+For codex and claude, make sure to install the acp clients first. `codex-acp` / `claude-agent-acp`
+
+You can add any other ACP client in `config.toml`.
 
 Examples:
 
