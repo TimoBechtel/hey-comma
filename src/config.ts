@@ -50,6 +50,7 @@ export const defaultConfig = {
   spawn_agent: {
     codex: {
       config: {
+        approval_policy: 'untrusted',
         sandbox_mode: 'read-only',
       },
     },

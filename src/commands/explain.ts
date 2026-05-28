@@ -6,6 +6,7 @@ import { context } from '../context.js';
 import { prompts } from '../prompts.js';
 import { isConfigured } from '../setup.js';
 import { collectCodexConfig, type AiCommandOptions } from './options.js';
+import { promptPermissionDecision } from './permission-prompt.js';
 
 const program = new Command();
 
@@ -65,6 +66,16 @@ const explainCmd = program
       maxTokens,
       onProgress: (message) => {
         spinner.text = message;
+      },
+      onPermissionRequest: ({ title }) => {
+        spinner.stop();
+        console.info(`\nAgent wants to use: ${title}`);
+
+        try {
+          return promptPermissionDecision();
+        } finally {
+          spinner.start();
+        }
       },
       temperature,
     });

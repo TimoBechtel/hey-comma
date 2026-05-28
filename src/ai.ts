@@ -2,6 +2,8 @@ import { generateText } from 'ai';
 import {
   SpawnAgent,
   type AgentEvent,
+  type PendingPermission,
+  type PermissionOption,
   type SupportedAgentId,
 } from 'spawn-agent';
 import { config, defaultConfig, type CodexConfigValue } from './config.js';
@@ -17,9 +19,18 @@ import {
 type AskAiOptions = {
   codexConfig?: string[];
   maxTokens?: number;
+  onPermissionRequest?: (
+    request: AiPermissionRequest,
+  ) => AiPermissionDecision | Promise<AiPermissionDecision>;
   onProgress?: (message: string) => void;
   overrideModel?: string;
   temperature?: number;
+};
+
+export type AiPermissionDecision = 'allow' | 'deny';
+
+type AiPermissionRequest = {
+  title: string;
 };
 
 export async function askAi(
@@ -27,6 +38,7 @@ export async function askAi(
   {
     codexConfig: codexConfigOverrides = [],
     maxTokens = defaultConfig.max_tokens,
+    onPermissionRequest,
     onProgress,
     overrideModel,
     temperature = defaultConfig.temperature,
@@ -62,6 +74,7 @@ export async function askAi(
       return await askSpawnAgent(prompt, {
         codexConfig,
         model,
+        onPermissionRequest,
         onProgress,
       });
     }
@@ -113,10 +126,14 @@ async function askSpawnAgent(
   {
     codexConfig,
     model,
+    onPermissionRequest,
     onProgress,
   }: {
     codexConfig: string[];
     model: string;
+    onPermissionRequest?: (
+      request: AiPermissionRequest,
+    ) => AiPermissionDecision | Promise<AiPermissionDecision>;
     onProgress?: (message: string) => void;
   },
 ) {
@@ -126,7 +143,7 @@ async function askSpawnAgent(
       : (model as SupportedAgentId),
     {
       cwd: process.cwd(),
-      permission: 'auto-allow-once',
+      permission: 'stream',
     },
   );
 
@@ -143,6 +160,10 @@ async function askSpawnAgent(
       const progress = getProgressMessage(event);
       if (progress) {
         onProgress?.(progress);
+      }
+
+      if (event.type === 'permission-request') {
+        await handlePermissionRequest(event.request, onPermissionRequest);
       }
     }
 
@@ -181,6 +202,39 @@ function getProgressMessage(event: AgentEvent) {
   }
 
   return null;
+}
+
+async function handlePermissionRequest(
+  request: PendingPermission,
+  onPermissionRequest?: (
+    request: AiPermissionRequest,
+  ) => AiPermissionDecision | Promise<AiPermissionDecision>,
+) {
+  const decision = onPermissionRequest
+    ? await onPermissionRequest({
+        title: request.raw.toolCall.title ?? request.tool ?? 'Tool request',
+      })
+    : 'allow';
+
+  const option =
+    decision === 'allow'
+      ? findPermissionOption(request.options, ['allow_once', 'allow_always'])
+      : findPermissionOption(request.options, ['reject_once', 'reject_always']);
+
+  if (option) {
+    request.respond(option.optionId);
+  } else {
+    request.cancel();
+  }
+}
+
+function findPermissionOption(
+  options: readonly PermissionOption[],
+  kinds: PermissionOption['kind'][],
+) {
+  return kinds
+    .map((kind) => options.find((option) => option.kind === kind))
+    .find((option) => option !== undefined);
 }
 
 function compactProgress(text: string) {
@@ -273,7 +327,12 @@ function resolveCodexConfig({
   }
 
   const spawnAgentConfig = config.get('spawn_agent', defaultConfig.spawn_agent);
-  const configured = spawnAgentConfig.codex?.config ?? {};
+  const configured = spawnAgentConfig.codex?.config
+    ? {
+        ...defaultConfig.spawn_agent.codex.config,
+        ...spawnAgentConfig.codex.config,
+      }
+    : defaultConfig.spawn_agent.codex.config;
 
   return [
     ...Object.entries(configured).map(
