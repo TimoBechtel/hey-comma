@@ -122,6 +122,17 @@ hey, run: initialize a next.js project in ./my-app
 
 _(colon is optional)_
 
+### Shell integration
+
+To better integrate hey, into your shell, configure the shell integration.
+For example, this adds executed comamnds to your history automatically.
+
+```sh
+eval "$(hey, shell-integration zsh)"
+```
+
+Supported shells: `zsh`, `bash`.
+
 ### `hey, explain`
 
 `hey, explain` will explain the data you pipe to it.

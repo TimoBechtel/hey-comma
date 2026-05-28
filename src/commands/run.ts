@@ -1,4 +1,5 @@
 import { exec } from 'node:child_process';
+import { writeFileSync } from 'node:fs';
 import { createInterface } from 'node:readline/promises';
 import { Command } from 'commander';
 import enquirer from 'enquirer';
@@ -231,6 +232,13 @@ const runCmd = program
       }
 
       const commandToRun = command;
+      const commandOutputFile = process.env.HEY_COMMAND_OUTPUT_FILE;
+
+      if (commandOutputFile) {
+        writeFileSync(commandOutputFile, `${commandToRun}\n`);
+        return;
+      }
+
       exec(commandToRun, (error, stdout, stderr) => {
         if (error) {
           runCmd.error(error.message);

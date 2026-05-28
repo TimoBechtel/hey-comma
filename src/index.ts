@@ -6,6 +6,7 @@ import configCmd from './commands/config.js';
 import explainCmd from './commands/explain.js';
 import runCmd from './commands/run.js';
 import setupCmd from './commands/setup.js';
+import shellIntegrationCmd from './commands/shell-integration.js';
 import { context } from './context.js';
 
 const VERSION = packageJson.version;
@@ -25,6 +26,7 @@ function initProgram({
     .addCommand(setupCmd)
     .addCommand(configCmd)
     .addCommand(cacheCmd)
+    .addCommand(shellIntegrationCmd)
     .addHelpText(
       'after',
       `
