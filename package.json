@@ -1,6 +1,6 @@
 {
   "name": "hey-comma",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Run shell commands using natural language",
   "repository": {
     "type": "git",

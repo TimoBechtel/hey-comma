@@ -1,3 +1,11 @@
+# [1.5.0](https://github.com/TimoBechtel/hey-comma/compare/v1.4.0...v1.5.0) (2026-05-28)
+
+
+### Features
+
+* add shell integration ([2f4c031](https://github.com/TimoBechtel/hey-comma/commit/2f4c0311970f3d0b186a13ddd7e5c2391a466d99))
+* add support for coding agents ([#3](https://github.com/TimoBechtel/hey-comma/issues/3)) ([d1eead8](https://github.com/TimoBechtel/hey-comma/commit/d1eead803a8847454b29c6774c68c25f8a5e9d01))
+
 # [1.4.0](https://github.com/TimoBechtel/hey-comma/compare/v1.3.0...v1.4.0) (2026-05-25)
 
 
