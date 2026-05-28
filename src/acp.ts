@@ -106,7 +106,7 @@ export async function runAcpPrompt({
 }
 
 function resolveAcpClient(client: string): Required<AcpClientConfig> {
-  const configuredClients = config.get('acp', defaultConfig.acp).clients ?? {};
+  const configuredClients = config.get('acp')?.clients ?? {};
   const defaultClients: Record<string, AcpClientConfig> =
     defaultConfig.acp.clients;
   const clientConfig = {

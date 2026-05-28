@@ -1,5 +1,5 @@
 import Conf from 'conf';
-import { config, configPath } from './config.js';
+import { config, configPath, defaultConfig } from './config.js';
 
 type CacheStore = Record<string, string>;
 
@@ -15,9 +15,12 @@ export const cache = {
     return cacheStore.get(compress(key));
   },
   set(key: string, value: string) {
-    const maxEntries: number | undefined = config.get('cache.max_entries');
+    const maxEntries = config.get(
+      'cache.max_entries',
+      defaultConfig.cache.max_entries,
+    );
 
-    cleanup({ maxEntries: maxEntries ?? 0 });
+    cleanup({ maxEntries });
     cacheStore.set(compress(key), value);
   },
   delete(key: string) {

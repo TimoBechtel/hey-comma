@@ -184,5 +184,4 @@ export const config = new Conf<Config>({
       },
     },
   },
-  defaults: defaultConfig,
 });
