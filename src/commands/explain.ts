@@ -84,13 +84,12 @@ const explainCmd = program
       temperature,
     });
 
+    spinner.stop();
+
     if (!success) {
-      spinner.stop();
       explainCmd.error(error);
       return;
     }
-
-    spinner.stop();
 
     console.info(answer);
   });

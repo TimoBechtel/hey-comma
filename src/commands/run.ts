@@ -106,7 +106,7 @@ const runCmd = program
         const {
           success,
           error,
-          answer: _command,
+          answer: generatedCommand,
         } = await askAi(prompt, {
           acpArgs: options?.acpArgs,
           overrideModel: options?.model,
@@ -127,15 +127,16 @@ const runCmd = program
           temperature,
         });
 
+        spinner.stop();
+
         if (!success) {
           runCmd.error(error);
           return null;
         }
 
-        command = extractCommand(_command);
+        command = extractCommand(generatedCommand);
 
         if (command.length === 0) {
-          spinner.stop();
           runCmd.error('No command generated.');
           return null;
         }
