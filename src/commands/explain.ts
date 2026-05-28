@@ -5,6 +5,12 @@ import { config } from '../config.js';
 import { context } from '../context.js';
 import { prompts } from '../prompts.js';
 import { isConfigured } from '../setup.js';
+import { promptPermissionDecision } from './permission-prompt.js';
+
+type AiCommandOptions = {
+  acpArgs?: string[];
+  model?: string;
+};
 
 const program = new Command();
 
@@ -16,6 +22,11 @@ const explainCmd = program
   )
   .argument('[question...]', 'optional question')
   .option('--model <model>', 'model selector or alias')
+  .option(
+    '--acp-args <args>',
+    'extra argument group for acp/<client>',
+    (value, previous?: string[]) => [...(previous ?? []), value],
+  )
   .hook('preAction', (command) => {
     if (!isConfigured()) {
       command.error(
@@ -23,7 +34,7 @@ const explainCmd = program
       );
     }
   })
-  .action(async (strings?: string[], options?: { model?: string }) => {
+  .action(async (strings?: string[], options?: AiCommandOptions) => {
     const question =
       !strings || strings.length === 0 ? 'What is this?' : strings.join(' ');
 
@@ -54,18 +65,31 @@ const explainCmd = program
     const temperature = config.get('temperature');
 
     const { success, error, answer } = await askAi(prompt, {
+      acpArgs: options?.acpArgs,
       overrideModel: options?.model,
       maxTokens,
+      onProgress: (message) => {
+        spinner.text = message;
+      },
+      onPermissionRequest: ({ title }) => {
+        spinner.stop();
+        console.info(`\nAgent wants to use: ${title}`);
+
+        try {
+          return promptPermissionDecision();
+        } finally {
+          spinner.start();
+        }
+      },
       temperature,
     });
 
+    spinner.stop();
+
     if (!success) {
-      spinner.stop();
       explainCmd.error(error);
       return;
     }
-
-    spinner.stop();
 
     console.info(answer);
   });
@@ -73,7 +97,7 @@ const explainCmd = program
 explainCmd.addHelpText(
   'after',
   `
-Note: The piped data will be transmitted to OpenAI. Only use this command with data you are comfortable sharing with OpenAI.
+Note: The piped data is sent to the selected provider or agent. Only pipe data you are comfortable sharing there.
 
 Examples:
 	$ cat scripts | hey, is this safe to run

@@ -9,6 +9,12 @@ import { config } from '../config.js';
 import { context } from '../context.js';
 import { prompts } from '../prompts.js';
 import { isConfigured } from '../setup.js';
+import { promptPermissionDecision } from './permission-prompt.js';
+
+type AiCommandOptions = {
+  acpArgs?: string[];
+  model?: string;
+};
 
 const program = new Command();
 const runCmd = program
@@ -17,6 +23,11 @@ const runCmd = program
   .description('create a shell command from an instruction (default)')
   .argument('[instruction...]', 'instruction')
   .option('--model <model>', 'model selector or alias')
+  .option(
+    '--acp-args <args>',
+    'extra argument group for acp/<client>',
+    (value, previous?: string[]) => [...(previous ?? []), value],
+  )
   .hook('preAction', (command) => {
     if (!isConfigured()) {
       command.error(
@@ -24,7 +35,7 @@ const runCmd = program
       );
     }
   })
-  .action(async (strings?: string[], options?: { model?: string }) => {
+  .action(async (strings?: string[], options?: AiCommandOptions) => {
     if (context.stdin) {
       runCmd.error(
         'hey, does not support piping data to "hey, run". Please use "hey, run" without piping data. Or use "hey, explain"',
@@ -95,22 +106,37 @@ const runCmd = program
         const {
           success,
           error,
-          answer: _command,
+          answer: generatedCommand,
         } = await askAi(prompt, {
+          acpArgs: options?.acpArgs,
           overrideModel: options?.model,
           maxTokens,
+          onProgress: (message) => {
+            spinner.text = message;
+          },
+          onPermissionRequest: ({ title }) => {
+            spinner.stop();
+            console.info(`\nAgent wants to use: ${title}`);
+
+            try {
+              return promptPermissionDecision();
+            } finally {
+              spinner.start();
+            }
+          },
           temperature,
         });
+
+        spinner.stop();
 
         if (!success) {
           runCmd.error(error);
           return null;
         }
 
-        command = _command.trim().replaceAll(/(^\n)|(\n$)/g, '');
+        command = extractCommand(generatedCommand);
 
         if (command.length === 0) {
-          spinner.stop();
           runCmd.error('No command generated.');
           return null;
         }
@@ -236,3 +262,9 @@ Examples:
 );
 
 export default runCmd;
+
+function extractCommand(answer: string) {
+  const taggedCommand = /<command>\s*([\s\S]*?)\s*<\/command>/.exec(answer);
+
+  return (taggedCommand?.[1] ?? answer).trim().replaceAll(/(^\n)|(\n$)/g, '');
+}

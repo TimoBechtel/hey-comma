@@ -12,7 +12,7 @@ export const prompts = {
   }) =>
     (
       customTemplate ??
-      'Please only answer with a single-line terminal command that I can copy and paste into my terminal. Do not add quotation marks. The command has to be executed in a %SHELL% shell.\n%INSTRUCTION%'
+      'Please answer with exactly one single-line terminal command wrapped in <command> tags. Do not add quotation marks. The command has to be executed in a %SHELL% shell.\n%INSTRUCTION%'
     )
       .replace('%SHELL%', shell)
       .replace('%INSTRUCTION%', instruction),

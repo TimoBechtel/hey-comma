@@ -1,23 +1,44 @@
 import { generateText } from 'ai';
+import {
+  runAcpPrompt,
+  type AcpPermissionDecision,
+  type AcpPermissionRequest,
+} from './acp.js';
 import { config, defaultConfig } from './config.js';
 import {
+  getApiKeyConfigKey,
   isProviderName,
   providerNames,
   providers,
   type ApiKeyConfigKey,
+  type LlmProviderName,
   type ProviderName,
 } from './providers.js';
 
 type AskAiOptions = {
+  acpArgs?: string[];
   maxTokens?: number;
+  onPermissionRequest?: (
+    request: AiPermissionRequest,
+  ) => AiPermissionDecision | Promise<AiPermissionDecision>;
+  onProgress?: (message: string) => void;
   overrideModel?: string;
   temperature?: number;
+};
+
+export type AiPermissionDecision = 'allow' | 'deny';
+
+type AiPermissionRequest = {
+  title: string;
 };
 
 export async function askAi(
   prompt: string,
   {
+    acpArgs: acpArgOverrides = [],
     maxTokens = defaultConfig.max_tokens,
+    onPermissionRequest,
+    onProgress,
     overrideModel,
     temperature = defaultConfig.temperature,
   }: AskAiOptions = {},
@@ -38,9 +59,22 @@ export async function askAi(
     let provider = resolved.provider;
     let model = resolved.model;
 
+    if (provider !== 'acp' && acpArgOverrides.length) {
+      throw new Error('`--acp-args` can only be used with acp/<client>.');
+    }
+
     if (shouldFallbackToOpenRouter(provider)) {
       model = `${provider}/${model}`;
       provider = 'openrouter';
+    }
+
+    if (provider === 'acp') {
+      return await askAcp(prompt, {
+        acpArgs: acpArgOverrides,
+        model,
+        onPermissionRequest,
+        onProgress,
+      });
     }
 
     const modelFactory = resolveModelFactory(provider);
@@ -83,6 +117,45 @@ export async function askAi(
       answer: null,
     };
   }
+}
+
+async function askAcp(
+  prompt: string,
+  {
+    acpArgs,
+    model,
+    onPermissionRequest,
+    onProgress,
+  }: {
+    acpArgs: string[];
+    model: string;
+    onPermissionRequest?: (
+      request: AcpPermissionRequest,
+    ) => AcpPermissionDecision | Promise<AcpPermissionDecision>;
+    onProgress?: (message: string) => void;
+  },
+) {
+  const result = await runAcpPrompt({
+    argGroups: acpArgs,
+    client: model,
+    onPermissionRequest,
+    onProgress,
+    prompt,
+  });
+
+  if (!result.text) {
+    return {
+      error: `Error: The AI returned an empty answer. Finish reason: ${result.stopReason}`,
+      success: false,
+      answer: null,
+    } as const;
+  }
+
+  return {
+    answer: result.text,
+    success: true,
+    error: null,
+  } as const;
 }
 
 function resolveModelSelector(rawModel?: string): {
@@ -129,7 +202,7 @@ function resolveModelSelector(rawModel?: string): {
   return { provider: providerPrefix, model };
 }
 
-function resolveModelFactory(provider: ProviderName) {
+function resolveModelFactory(provider: LlmProviderName) {
   const providerConfig = providers[provider];
   const apiKey = getApiKey(providerConfig.apiKeyConfigKey);
   const openrouterBaseUrl = config.get(
@@ -144,7 +217,7 @@ function resolveModelFactory(provider: ProviderName) {
 }
 
 function shouldFallbackToOpenRouter(provider: ProviderName) {
-  if (provider === 'openrouter') {
+  if (provider === 'openrouter' || provider === 'acp') {
     return false;
   }
 
@@ -157,16 +230,18 @@ function shouldFallbackToOpenRouter(provider: ProviderName) {
     return false;
   }
 
-  const providerConfig = providers[provider];
-
-  if (hasApiKey(providerConfig.apiKeyConfigKey)) {
+  if (hasApiKey(getApiKeyConfigKey(provider))) {
     return false;
   }
 
   return hasApiKey(providers.openrouter.apiKeyConfigKey);
 }
 
-function hasApiKey(configKey: ApiKeyConfigKey) {
+function hasApiKey(configKey?: ApiKeyConfigKey) {
+  if (!configKey) {
+    return false;
+  }
+
   return Boolean(resolveKey(config.get(configKey)));
 }
 

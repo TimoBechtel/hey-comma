@@ -69,6 +69,7 @@ Supported binaries:
 ### npm install
 
 Requires Node.js **22 or later** when installed via npm.
+
 ```sh
 npm i -g hey-comma
 ```
@@ -80,7 +81,7 @@ npm i -g hey-comma
 
 ### AI provider setup
 
-`hey,` works with `openai`, `anthropic`, `google`, and `openrouter`.
+`hey,` works with `openai`, `anthropic`, `google`, `openrouter`, and installed ACP clients.
 
 Then, run:
 
@@ -160,7 +161,7 @@ For example, `~/.hey-comma/config.toml`
 
 Available options:
 
-- `default_provider`: default provider (`openai`, `anthropic`, `google`, `openrouter`)
+- `default_provider`: default provider (`openai`, `anthropic`, `google`, `openrouter`, `acp`)
 - `default_model`: default model name for your default provider
 - `model_aliases`: alias map for model selectors (e.g. `smart = "anthropic/claude-sonnet-4-5"`)
 - `openai_api_key`: OpenAI API key (or `env:OPENAI_API_KEY`)
@@ -190,6 +191,8 @@ Accepted forms:
 - alias from `model_aliases`
 - bare model name (resolved with `default_provider`)
 
+When using `acp`, the `model` part is the agent id, for example `acp/codex`.
+
 Example aliases:
 
 ```toml
@@ -197,6 +200,38 @@ Example aliases:
 fast = "openai/gpt-4o-mini"
 smart = "anthropic/claude-sonnet-4-5"
 cheap = "google/gemini-2.5-flash"
+local = "acp/codex"
+```
+
+### ACP clients
+
+ACP clients run as local subprocesses. Built-in configs are `codex`, `claude`, `copilot`, `cursor`, `gemini`, `opencode`, and `pi`.
+For codex and claude, make sure to install the acp clients first. `codex-acp` / `claude-agent-acp`
+
+You can add any other ACP client in `config.toml`.
+
+Examples:
+
+```sh
+hey, run --model acp/codex "list the largest files in this directory"
+cat script.sh | hey, explain --model acp/claude "is this safe to run?"
+hey, run --model acp/codex --acp-args '-c model="gpt-5.4-mini"' "summarize this repo"
+```
+
+Configure clients in `config.toml`:
+
+```toml
+[acp.clients.codex]
+command = "codex-acp"
+args = [
+  "-c approval_policy=\"untrusted\"",
+  "-c sandbox_mode=\"read-only\"",
+]
+
+[acp.clients.my-agent]
+command = "my-acp-agent"
+args = ["serve --acp"]
+env = { FOO = "bar" }
 ```
 
 ### Custom prompts
