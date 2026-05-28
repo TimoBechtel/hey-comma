@@ -2,19 +2,12 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import {
-  adapters,
-  createSpawnAgent,
-  type AgentAdapter,
-  type SupportedAgentId,
-} from 'spawn-agent';
 
 // disable warnings, like temperature not supported by some models
 (globalThis as { AI_SDK_LOG_WARNINGS?: boolean }).AI_SDK_LOG_WARNINGS = false;
 
 type ProviderFactoryOptions = {
   apiKey?: string;
-  codexConfig?: string[];
   openrouterBaseUrl?: string;
 };
 
@@ -22,19 +15,28 @@ type ProviderOptionsInput = {
   disableThinking: boolean;
 };
 
-type ProviderDefinition = {
-  apiKeyConfigKey?: `${string}_api_key`;
+type LlmProviderDefinition = {
+  type: 'llm';
+  apiKeyConfigKey: `${string}_api_key`;
   defaultModel: string;
   createModelFactory: (
     options: ProviderFactoryOptions,
   ) => (model: string) => unknown;
-  getProviderOptions?: (
+  getProviderOptions: (
     options: ProviderOptionsInput,
   ) => Record<string, unknown> | undefined;
 };
 
+type AcpProviderDefinition = {
+  type: 'acp';
+  defaultModel: string;
+};
+
+type ProviderDefinition = AcpProviderDefinition | LlmProviderDefinition;
+
 export const providers = {
   openai: {
+    type: 'llm',
     apiKeyConfigKey: 'openai_api_key',
     defaultModel: 'gpt-5.1-codex-mini',
     createModelFactory: ({ apiKey }) => createOpenAI({ apiKey }),
@@ -42,6 +44,7 @@ export const providers = {
       disableThinking ? { openai: { reasoningEffort: 'minimal' } } : undefined,
   },
   anthropic: {
+    type: 'llm',
     apiKeyConfigKey: 'anthropic_api_key',
     defaultModel: 'claude-haiku-4-5',
     createModelFactory: ({ apiKey }) => createAnthropic({ apiKey }),
@@ -51,12 +54,14 @@ export const providers = {
         : undefined,
   },
   google: {
+    type: 'llm',
     apiKeyConfigKey: 'google_api_key',
     defaultModel: 'gemini-2.5-flash',
     createModelFactory: ({ apiKey }) => createGoogleGenerativeAI({ apiKey }),
     getProviderOptions: () => undefined,
   },
   openrouter: {
+    type: 'llm',
     apiKeyConfigKey: 'openrouter_api_key',
     defaultModel: 'openai/gpt-5.1-codex-mini',
     createModelFactory: ({ apiKey, openrouterBaseUrl }) =>
@@ -69,33 +74,20 @@ export const providers = {
         ? { openrouter: { reasoning: { max_tokens: 0 } } }
         : undefined,
   },
-  'spawn-agent': {
-    apiKeyConfigKey: undefined,
+  acp: {
+    type: 'acp',
     defaultModel: 'codex',
-    createModelFactory: ({ codexConfig }) => {
-      const spawnAgent = createSpawnAgent({ permission: 'auto-allow-once' });
-
-      return (model: string) => {
-        if (codexConfig?.length) {
-          if (model !== 'codex') {
-            throw new Error(
-              'Codex config can only be used with spawn-agent/codex.',
-            );
-          }
-
-          return spawnAgent.fromAdapter(createCodexAdapter(codexConfig));
-        }
-
-        return spawnAgent(model as SupportedAgentId);
-      };
-    },
-    getProviderOptions: () => undefined,
   },
 } as const satisfies Record<string, ProviderDefinition>;
 
 export type ProviderName = keyof typeof providers;
+export type LlmProviderName = {
+  [Name in ProviderName]: (typeof providers)[Name]['type'] extends 'llm'
+    ? Name
+    : never;
+}[ProviderName];
 export type ApiKeyConfigKey =
-  (typeof providers)[ProviderName]['apiKeyConfigKey'];
+  (typeof providers)[LlmProviderName]['apiKeyConfigKey'];
 
 export const providerNames = Object.keys(providers) as ProviderName[];
 
@@ -103,21 +95,7 @@ export function isProviderName(value: string): value is ProviderName {
   return providerNames.includes(value as ProviderName);
 }
 
-export function createCodexAdapter(codexConfig: string[]): AgentAdapter {
-  const codexAdapter = adapters.codex();
-
-  return {
-    ...codexAdapter,
-    async resolve() {
-      const resolved = await codexAdapter.resolve();
-
-      return {
-        ...resolved,
-        args: [
-          ...resolved.args,
-          ...codexConfig.flatMap((value) => ['-c', value]),
-        ],
-      };
-    },
-  };
+export function getApiKeyConfigKey(providerName: ProviderName) {
+  const provider = providers[providerName];
+  return provider.type === 'llm' ? provider.apiKeyConfigKey : undefined;
 }

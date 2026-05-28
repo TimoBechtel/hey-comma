@@ -9,8 +9,12 @@ import { config } from '../config.js';
 import { context } from '../context.js';
 import { prompts } from '../prompts.js';
 import { isConfigured } from '../setup.js';
-import { collectCodexConfig, type AiCommandOptions } from './options.js';
 import { promptPermissionDecision } from './permission-prompt.js';
+
+type AiCommandOptions = {
+  acpArgs?: string[];
+  model?: string;
+};
 
 const program = new Command();
 const runCmd = program
@@ -20,9 +24,9 @@ const runCmd = program
   .argument('[instruction...]', 'instruction')
   .option('--model <model>', 'model selector or alias')
   .option(
-    '--codex-config <key=value>',
-    'Codex config override for spawn-agent/codex',
-    collectCodexConfig,
+    '--acp-args <args>',
+    'extra argument group for acp/<client>',
+    (value, previous?: string[]) => [...(previous ?? []), value],
   )
   .hook('preAction', (command) => {
     if (!isConfigured()) {
@@ -104,7 +108,7 @@ const runCmd = program
           error,
           answer: _command,
         } = await askAi(prompt, {
-          codexConfig: options?.codexConfig,
+          acpArgs: options?.acpArgs,
           overrideModel: options?.model,
           maxTokens,
           onProgress: (message) => {

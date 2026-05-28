@@ -75,6 +75,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@agentclientprotocol/sdk": "^0.22.1",
     "@ai-sdk/anthropic": "^3.0.46",
     "@ai-sdk/google": "^3.0.30",
     "@ai-sdk/openai": "^3.0.30",
@@ -85,6 +86,6 @@
     "conf": "^11.0.2",
     "enquirer": "^2.4.1",
     "ora": "^9.3.0",
-    "spawn-agent": "^0.0.1"
+    "string-argv": "^0.3.2"
   }
 }

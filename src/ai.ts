@@ -1,23 +1,22 @@
 import { generateText } from 'ai';
 import {
-  SpawnAgent,
-  type AgentEvent,
-  type PendingPermission,
-  type PermissionOption,
-  type SupportedAgentId,
-} from 'spawn-agent';
-import { config, defaultConfig, type CodexConfigValue } from './config.js';
+  runAcpPrompt,
+  type AcpPermissionDecision,
+  type AcpPermissionRequest,
+} from './acp.js';
+import { config, defaultConfig } from './config.js';
 import {
-  createCodexAdapter,
+  getApiKeyConfigKey,
   isProviderName,
   providerNames,
   providers,
   type ApiKeyConfigKey,
+  type LlmProviderName,
   type ProviderName,
 } from './providers.js';
 
 type AskAiOptions = {
-  codexConfig?: string[];
+  acpArgs?: string[];
   maxTokens?: number;
   onPermissionRequest?: (
     request: AiPermissionRequest,
@@ -36,7 +35,7 @@ type AiPermissionRequest = {
 export async function askAi(
   prompt: string,
   {
-    codexConfig: codexConfigOverrides = [],
+    acpArgs: acpArgOverrides = [],
     maxTokens = defaultConfig.max_tokens,
     onPermissionRequest,
     onProgress,
@@ -59,27 +58,26 @@ export async function askAi(
     const resolved = resolveModelSelector(overrideModel);
     let provider = resolved.provider;
     let model = resolved.model;
-    const codexConfig = resolveCodexConfig({
-      overrides: codexConfigOverrides,
-      provider,
-      model,
-    });
+
+    if (provider !== 'acp' && acpArgOverrides.length) {
+      throw new Error('`--acp-args` can only be used with acp/<client>.');
+    }
 
     if (shouldFallbackToOpenRouter(provider)) {
       model = `${provider}/${model}`;
       provider = 'openrouter';
     }
 
-    if (provider === 'spawn-agent') {
-      return await askSpawnAgent(prompt, {
-        codexConfig,
+    if (provider === 'acp') {
+      return await askAcp(prompt, {
+        acpArgs: acpArgOverrides,
         model,
         onPermissionRequest,
         onProgress,
       });
     }
 
-    const modelFactory = resolveModelFactory(provider, { codexConfig });
+    const modelFactory = resolveModelFactory(provider);
     const llm = modelFactory(model);
     const disableThinking = config.get(
       'disable_thinking',
@@ -121,124 +119,43 @@ export async function askAi(
   }
 }
 
-async function askSpawnAgent(
+async function askAcp(
   prompt: string,
   {
-    codexConfig,
+    acpArgs,
     model,
     onPermissionRequest,
     onProgress,
   }: {
-    codexConfig: string[];
+    acpArgs: string[];
     model: string;
     onPermissionRequest?: (
-      request: AiPermissionRequest,
-    ) => AiPermissionDecision | Promise<AiPermissionDecision>;
+      request: AcpPermissionRequest,
+    ) => AcpPermissionDecision | Promise<AcpPermissionDecision>;
     onProgress?: (message: string) => void;
   },
 ) {
-  const agent = await SpawnAgent.connect(
-    model === 'codex' && codexConfig.length
-      ? createCodexAdapter(codexConfig)
-      : (model as SupportedAgentId),
-    {
-      cwd: process.cwd(),
-      permission: 'stream',
-    },
-  );
+  const result = await runAcpPrompt({
+    argGroups: acpArgs,
+    client: model,
+    onPermissionRequest,
+    onProgress,
+    prompt,
+  });
 
-  try {
-    const sessionId = await agent.createSession({ cwd: process.cwd() });
-    const turn = agent.prompt(sessionId, { prompt });
-    let answer = '';
-
-    for await (const event of turn) {
-      if (event.type === 'text-delta') {
-        answer += event.text;
-      }
-
-      const progress = getProgressMessage(event);
-      if (progress) {
-        onProgress?.(progress);
-      }
-
-      if (event.type === 'permission-request') {
-        await handlePermissionRequest(event.request, onPermissionRequest);
-      }
-    }
-
-    const result = await turn.completion;
-    const text = (result.text || answer).trim();
-
-    if (!text) {
-      return {
-        error: `Error: The AI returned an empty answer. Finish reason: ${result.stopReason}`,
-        success: false,
-        answer: null,
-      } as const;
-    }
-
+  if (!result.text) {
     return {
-      answer: text,
-      success: true,
-      error: null,
+      error: `Error: The AI returned an empty answer. Finish reason: ${result.stopReason}`,
+      success: false,
+      answer: null,
     } as const;
-  } finally {
-    await agent.close();
-  }
-}
-
-function getProgressMessage(event: AgentEvent) {
-  if (event.type === 'thinking-delta') {
-    return compactProgress(event.text);
   }
 
-  if (event.type === 'tool-call') {
-    return compactProgress(event.tool);
-  }
-
-  if (event.type === 'tool-call-update') {
-    return event.title ? compactProgress(event.title) : null;
-  }
-
-  return null;
-}
-
-async function handlePermissionRequest(
-  request: PendingPermission,
-  onPermissionRequest?: (
-    request: AiPermissionRequest,
-  ) => AiPermissionDecision | Promise<AiPermissionDecision>,
-) {
-  const decision = onPermissionRequest
-    ? await onPermissionRequest({
-        title: request.raw.toolCall.title ?? request.tool ?? 'Tool request',
-      })
-    : 'allow';
-
-  const option =
-    decision === 'allow'
-      ? findPermissionOption(request.options, ['allow_once', 'allow_always'])
-      : findPermissionOption(request.options, ['reject_once', 'reject_always']);
-
-  if (option) {
-    request.respond(option.optionId);
-  } else {
-    request.cancel();
-  }
-}
-
-function findPermissionOption(
-  options: readonly PermissionOption[],
-  kinds: PermissionOption['kind'][],
-) {
-  return kinds
-    .map((kind) => options.find((option) => option.kind === kind))
-    .find((option) => option !== undefined);
-}
-
-function compactProgress(text: string) {
-  return text.trim().replaceAll(/\s+/g, ' ').slice(0, 120);
+  return {
+    answer: result.text,
+    success: true,
+    error: null,
+  } as const;
 }
 
 function resolveModelSelector(rawModel?: string): {
@@ -285,14 +202,9 @@ function resolveModelSelector(rawModel?: string): {
   return { provider: providerPrefix, model };
 }
 
-function resolveModelFactory(
-  provider: ProviderName,
-  { codexConfig }: { codexConfig: string[] },
-) {
+function resolveModelFactory(provider: LlmProviderName) {
   const providerConfig = providers[provider];
-  const apiKey = providerConfig.apiKeyConfigKey
-    ? getApiKey(providerConfig.apiKeyConfigKey)
-    : undefined;
+  const apiKey = getApiKey(providerConfig.apiKeyConfigKey);
   const openrouterBaseUrl = config.get(
     'openrouter_base_url',
     defaultConfig.openrouter_base_url,
@@ -300,72 +212,12 @@ function resolveModelFactory(
 
   return providerConfig.createModelFactory({
     apiKey,
-    codexConfig,
     openrouterBaseUrl,
   });
 }
 
-function resolveCodexConfig({
-  overrides,
-  provider,
-  model,
-}: {
-  overrides: string[];
-  provider: ProviderName;
-  model: string;
-}) {
-  const isCodex = provider === 'spawn-agent' && model === 'codex';
-
-  if (!isCodex) {
-    if (overrides.length) {
-      throw new Error(
-        '`--codex-config` can only be used with spawn-agent/codex.',
-      );
-    }
-
-    return [];
-  }
-
-  const spawnAgentConfig = config.get('spawn_agent', defaultConfig.spawn_agent);
-  const configured = spawnAgentConfig.codex?.config
-    ? {
-        ...defaultConfig.spawn_agent.codex.config,
-        ...spawnAgentConfig.codex.config,
-      }
-    : defaultConfig.spawn_agent.codex.config;
-
-  return [
-    ...Object.entries(configured).map(
-      ([key, value]) => `${key}=${formatCodexConfigValue(value)}`,
-    ),
-    ...overrides,
-  ];
-}
-
-function formatCodexConfigValue(value: CodexConfigValue): string {
-  if (typeof value === 'string') {
-    return JSON.stringify(value);
-  }
-
-  if (typeof value !== 'object') {
-    return String(value);
-  }
-
-  const entries = Object.entries(value)
-    .map(([key, nestedValue]) => {
-      return `${formatTomlKey(key)} = ${formatCodexConfigValue(nestedValue)}`;
-    })
-    .join(', ');
-
-  return entries ? `{ ${entries} }` : '{}';
-}
-
-function formatTomlKey(key: string) {
-  return /^[A-Za-z0-9_-]+$/.test(key) ? key : JSON.stringify(key);
-}
-
 function shouldFallbackToOpenRouter(provider: ProviderName) {
-  if (provider === 'openrouter' || provider === 'spawn-agent') {
+  if (provider === 'openrouter' || provider === 'acp') {
     return false;
   }
 
@@ -378,9 +230,7 @@ function shouldFallbackToOpenRouter(provider: ProviderName) {
     return false;
   }
 
-  const providerConfig = providers[provider];
-
-  if (hasApiKey(providerConfig.apiKeyConfigKey)) {
+  if (hasApiKey(getApiKeyConfigKey(provider))) {
     return false;
   }
 
@@ -395,11 +245,7 @@ function hasApiKey(configKey?: ApiKeyConfigKey) {
   return Boolean(resolveKey(config.get(configKey)));
 }
 
-function getApiKey(configKey?: ApiKeyConfigKey) {
-  if (!configKey) {
-    return undefined;
-  }
-
+function getApiKey(configKey: ApiKeyConfigKey) {
   const configured = config.get(configKey);
   const key = resolveKey(configured);
 

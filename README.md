@@ -81,7 +81,7 @@ npm i -g hey-comma
 
 ### AI provider setup
 
-`hey,` works with `openai`, `anthropic`, `google`, `openrouter`, and `spawn-agent`.
+`hey,` works with `openai`, `anthropic`, `google`, `openrouter`, and local ACP clients.
 
 Then, run:
 
@@ -161,7 +161,7 @@ For example, `~/.hey-comma/config.toml`
 
 Available options:
 
-- `default_provider`: default provider (`openai`, `anthropic`, `google`, `openrouter`, `spawn-agent`)
+- `default_provider`: default provider (`openai`, `anthropic`, `google`, `openrouter`, `acp`)
 - `default_model`: default model name for your default provider
 - `model_aliases`: alias map for model selectors (e.g. `smart = "anthropic/claude-sonnet-4-5"`)
 - `openai_api_key`: OpenAI API key (or `env:OPENAI_API_KEY`)
@@ -191,7 +191,7 @@ Accepted forms:
 - alias from `model_aliases`
 - bare model name (resolved with `default_provider`)
 
-When using `spawn-agent`, the `model` part is the local agent id, for example `spawn-agent/codex` or `spawn-agent/claude`.
+When using `acp`, the `model` part is the agent id, for example `acp/codex`.
 
 Example aliases:
 
@@ -200,52 +200,36 @@ Example aliases:
 fast = "openai/gpt-4o-mini"
 smart = "anthropic/claude-sonnet-4-5"
 cheap = "google/gemini-2.5-flash"
-local = "spawn-agent/codex"
+local = "acp/codex"
 ```
 
-### spawn-agent
+### ACP clients
 
-`spawn-agent` lets `hey,` use a locally installed coding agent instead of a hosted API model.
+ACP clients run as local subprocesses. Built-in clients are `codex`, `claude`, `copilot`, `cursor`, `gemini`, `opencode`, and `pi`. You can add any other ACP client in `config.toml`.
 
-Example:
+Examples:
 
 ```sh
-hey, run --model spawn-agent/codex "list the largest files in this directory"
-cat script.sh | hey, explain --model spawn-agent/claude "is this safe to run?"
-hey, run --model spawn-agent/codex --codex-config model=gpt-5.4-mini "summarize this repo"
+hey, run --model acp/codex "list the largest files in this directory"
+cat script.sh | hey, explain --model acp/claude "is this safe to run?"
+hey, run --model acp/codex --acp-args '-c model="gpt-5.4-mini"' "summarize this repo"
 ```
 
-Supported agent ids depend on `spawn-agent`, and include `claude`, `codex`, `cursor`, `copilot`, `gemini`, `opencode`, `droid`, and `pi`.
-
-Codex config overrides are only used with `spawn-agent/codex`. They are passed to `codex-acp` as `-c key=value`.
+Configure clients in `config.toml`:
 
 ```toml
-[spawn_agent.codex.config]
-model = "gpt-5.4-mini"
+[acp.clients.codex]
+command = "codex-acp"
+args = [
+  "-c approval_policy=\"untrusted\"",
+  "-c sandbox_mode=\"read-only\"",
+]
+
+[acp.clients.my-agent]
+command = "my-acp-agent"
+args = ["serve --acp"]
+env = { FOO = "bar" }
 ```
-
-Lean Codex config:
-
-```toml
-[spawn_agent.codex.config]
-model = "gpt-5.4-mini"
-model_reasoning_effort = "low"
-system_prompt = ""
-mcp_servers = {}
-features.fast_mode = true
-features.apps = false
-features.plugins = false
-features.browser_use = false
-features.in_app_browser = false
-features.multi_agent = false
-features.image_generation = false
-features.memories = false
-features.hooks = false
-features.shell_snapshot = false
-```
-
-> [!IMPORTANT]
-> `spawn-agent` does not use API keys configured through `hey,`. You need the corresponding local agent CLI installed and authenticated on your machine.
 
 ### Custom prompts
 

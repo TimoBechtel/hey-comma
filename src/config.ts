@@ -3,6 +3,7 @@ import path from 'node:path';
 import { parse, stringify } from '@iarna/toml';
 import Conf from 'conf';
 import {
+  getApiKeyConfigKey,
   providerNames,
   providers,
   type ApiKeyConfigKey,
@@ -13,24 +14,20 @@ const { homedir } = userInfo();
 
 export const configPath = path.join(homedir, '.hey-comma');
 
-type ProviderApiKeyConfig = Partial<
-  Record<Extract<ApiKeyConfigKey, string>, string>
->;
+type ProviderApiKeyConfig = Partial<Record<ApiKeyConfigKey, string>>;
 
-export type CodexConfigValue =
-  | boolean
-  | number
-  | string
-  | { [key: string]: CodexConfigValue };
+export type AcpClientConfig = {
+  args?: string[];
+  command?: string;
+  env?: Record<string, string>;
+};
 
 type Config = ProviderApiKeyConfig & {
   default_provider?: ProviderName;
   default_model?: string;
   model_aliases?: Record<string, string>;
-  spawn_agent?: {
-    codex?: {
-      config?: Record<string, CodexConfigValue>;
-    };
+  acp?: {
+    clients?: Record<string, AcpClientConfig>;
   };
   openrouter_base_url?: string;
   disable_thinking?: boolean;
@@ -47,11 +44,34 @@ export const defaultConfig = {
   default_provider: 'openai',
   default_model: providers.openai.defaultModel,
   model_aliases: {},
-  spawn_agent: {
-    codex: {
-      config: {
-        approval_policy: 'untrusted',
-        sandbox_mode: 'read-only',
+  acp: {
+    clients: {
+      codex: {
+        command: 'codex-acp',
+        args: ['-c approval_policy="untrusted"', '-c sandbox_mode="read-only"'],
+      },
+      claude: {
+        command: 'claude-agent-acp',
+      },
+      copilot: {
+        command: 'copilot',
+        args: ['--acp'],
+      },
+      cursor: {
+        command: 'agent',
+        args: ['acp'],
+      },
+      gemini: {
+        command: 'gemini',
+        args: ['--acp'],
+      },
+      opencode: {
+        command: 'opencode',
+        args: ['acp'],
+      },
+      pi: {
+        command: 'pi',
+        args: ['acp'],
       },
     },
   },
@@ -66,7 +86,7 @@ export const defaultConfig = {
 
 const providerApiKeySchema = Object.fromEntries(
   providerNames.flatMap((providerName) => {
-    const apiKeyConfigKey = providers[providerName].apiKeyConfigKey;
+    const apiKeyConfigKey = getApiKeyConfigKey(providerName);
 
     if (!apiKeyConfigKey) {
       return [];
@@ -83,18 +103,6 @@ const providerApiKeySchema = Object.fromEntries(
     ];
   }),
 );
-
-const codexConfigValueSchema = {
-  anyOf: [
-    { type: 'boolean' },
-    { type: 'number' },
-    { type: 'string' },
-    {
-      type: 'object',
-      additionalProperties: true,
-    },
-  ],
-};
 
 export const config = new Conf<Config>({
   configName: 'config',
@@ -118,15 +126,29 @@ export const config = new Conf<Config>({
         type: 'string',
       },
     },
-    spawn_agent: {
+    acp: {
       type: 'object',
       properties: {
-        codex: {
+        clients: {
           type: 'object',
-          properties: {
-            config: {
-              type: 'object',
-              additionalProperties: codexConfigValueSchema,
+          additionalProperties: {
+            type: 'object',
+            properties: {
+              args: {
+                type: 'array',
+                items: {
+                  type: 'string',
+                },
+              },
+              command: {
+                type: 'string',
+              },
+              env: {
+                type: 'object',
+                additionalProperties: {
+                  type: 'string',
+                },
+              },
             },
           },
         },
