@@ -110,6 +110,9 @@ hey, config set openrouter_api_key "env:OPENROUTER_API_KEY"
 
 `hey, run` is the default mode. It will convert your instruction to a shell command and run it. **It will always ask for confirmation before running the command.**
 
+> [!WARNING] 
+> When using ACP clients, it might run commands without confirmation depending on your agent's configuration.
+
 ```sh
 hey, create a tarball with all files in the current dir, except js files
 ```
@@ -125,7 +128,9 @@ _(colon is optional)_
 ### Shell integration
 
 To better integrate hey, into your shell, configure the shell integration.
-For example, this adds executed comamnds to your history automatically.
+This adds executed comamnds to your history automatically.
+
+Add this to your `.bashrc` or `.zshrc`:
 
 ```sh
 eval "$(hey, shell-integration zsh)"
@@ -139,6 +144,9 @@ Supported shells: `zsh`, `bash`.
 
 > [!IMPORTANT]
 > Piped data is sent to your configured provider. Do not pipe secrets you would not send to that service.
+
+> [!WARNING] 
+> Another warning: When using ACP clients, this can be a surface of prompt injection. Only pipe data you trust into hey.
 
 ```sh
 cat mysterious.sh | hey, is this safe to run
